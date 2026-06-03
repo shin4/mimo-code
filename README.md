@@ -1,95 +1,55 @@
+<div align="center">
+
+<img src="docs/assets/icon.png" alt="MiMo-Code" width="76" height="76" />
+
 # MiMo-Code
 
-MiMo-Code is a native desktop coding agent for the MiMo model family. It is
-built to make MiMo models first-class participants in the agent runtime rather
-than treating them as a generic OpenAI-compatible provider: coding, reasoning,
-multimodal understanding, audio dictation, speech synthesis, and other
-MiMo-native capabilities are expected to shape both product behavior and runtime
-design.
+**A native desktop coding agent for the MiMo model family.**
 
-This repository is maintained as an independent project with the current `main`
-branch as the initial baseline. MiMo-Code is developed on the OpenCode Desktop V2
-route and builds on the OpenCode Harness foundation while adapting request
-shaping, model selection, context packaging, and desktop workflows for MiMo.
+English | [简体中文](./README.zh-CN.md)
 
-> **Disclaimer:** MiMo-Code is an independent, community-maintained project. It is
-> not an official Xiaomi product and is not affiliated with, sponsored by, or
-> endorsed by Xiaomi Inc. It connects to the MiMo model platform purely as a
-> third-party client.
+[![License: MIT](https://img.shields.io/badge/License-MIT-ff6900.svg)](./LICENSE)
+![Desktop: Windows · macOS](https://img.shields.io/badge/desktop-Windows%20%C2%B7%20macOS-121317.svg)
 
-## Project Direction
+<img src="docs/assets/screenshot.png" alt="MiMo-Code desktop app" width="760" />
 
-- Use the full MiMo model family natively, including coding, reasoning,
-  multimodal, audio, and TTS capabilities.
-- Extend the OpenCode Harness into a MiMo-first coding agent instead of shipping
-  a provider-only skin over an upstream desktop client.
-- Incorporate Reasonix-inspired cost-control ideas: stable prefix cache inputs,
-  visible token and cost accounting, lightweight context by default, and model
-  selection that matches each task to the cheapest capable MiMo model.
-- Keep project state isolated so MiMo-Code can run beside upstream OpenCode
-  without mixing local agent configuration.
+</div>
 
-MiMo-Code uses isolated project configuration by default so it can be installed
-next to upstream OpenCode without sharing local project state. Project config
-lives in `mimo.json` or `mimo.jsonc`, and project-local agents, commands,
-skills, plugins, tools, and plans live under `.mimo/`.
+---
 
-MiMo-Code does not automatically read or write `.opencode/`, `opencode.json`,
-`opencode.jsonc`, or `OPENCODE_*` environment variables. To import an existing
-OpenCode project by hand, copy `.opencode` to `.mimo` and copy `opencode.json`
-or `opencode.jsonc` to `mimo.json` or `mimo.jsonc`.
+MiMo-Code is a desktop coding agent built **around the MiMo series models**. Instead of treating
+MiMo as a generic OpenAI-compatible provider, it makes MiMo a first-class participant in the agent
+runtime — built on the OpenCode harness and adapted to be MiMo-first.
 
-## Repository Layout
+## Highlights
 
-- `packages/agent` - local agent runtime, HTTP API, tools, storage, and MiMo provider wiring.
-- `packages/app` - shared Solid UI used by the desktop shell.
-- `packages/desktop` - Electron desktop application.
-- `packages/core` - shared runtime utilities, schemas, storage helpers, and compatibility services.
-- `packages/llm` - schema-first LLM routing package used by the MiMo native runtime.
-- `packages/sdk/js` - generated JavaScript SDK.
+- **MiMo-native** — request shaping, model selection, and context packaging tuned for MiMo, not a generic provider skin.
+- **Multimodal** — native image, PDF, and video understanding, plus audio dictation and speech synthesis (TTS).
+- **Cost-aware** — stable prefix-cache inputs for high cache-hit rates, visible token & cost accounting, and selection of the cheapest capable model for each task.
+- **Desktop apps** — Windows & macOS, built on Electron. **No TUI planned.**
 
-## Development
+## Download
 
-Install dependencies from the repository root:
+Prebuilt Windows and macOS apps are coming soon. For now, build from source:
 
 ```bash
 bun install
-```
-
-Run the desktop app:
-
-```bash
 bun run dev:desktop
 ```
 
-Run the shared web app against a local agent server:
+Installer builds: `bun run package:mac` and `bun run package:win` (Linux is also buildable with
+`bun run package:linux`). See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full setup.
 
-```bash
-bun run dev:agent
-bun run dev:app
-```
+## Connect to MiMo
 
-## Verification
+Get an API key from [platform.xiaomimimo.com](https://platform.xiaomimimo.com) — pay-as-you-go
+(`sk-…`) or a token plan (`tp-…`) — and add it in the app.
 
-Tests are intentionally not run from the repository root. Run package checks
-from package directories:
+## License
 
-```bash
-cd packages/agent
-bun typecheck
-```
+[MIT](./LICENSE). MiMo-Code is derived from [opencode](https://github.com/anomalyco/opencode); see
+[NOTICE.md](./NOTICE.md) for attribution and third-party notices.
 
-Common package checks:
-
-```bash
-cd packages/app && bun typecheck
-cd packages/core && bun typecheck
-cd packages/desktop && bun typecheck
-cd packages/llm && bun typecheck
-```
-
-If API or SDK output changes, regenerate the JavaScript SDK:
-
-```bash
-./packages/sdk/js/script/build.ts
-```
+> **Disclaimer:** MiMo-Code is an independent, community-maintained project. It is not an official
+> Xiaomi product and is not affiliated with, sponsored by, or endorsed by Xiaomi Inc. It connects to
+> the MiMo model platform purely as a third-party client.
