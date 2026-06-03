@@ -26,8 +26,19 @@ const channel = (() => {
   return "dev"
 })()
 
+// macOS signing/notarization are gated on credentials so unsigned dev/PR builds
+// never fail. Set APPLE_TEAM_ID (+ APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD) to
+// notarize, and CSC_LINK (+ CSC_KEY_PASSWORD) to code sign. With neither, set
+// CSC_IDENTITY_AUTO_DISCOVERY=false to skip signing cleanly.
+const appleTeamId = process.env.APPLE_TEAM_ID
+const macSign = Boolean(process.env.CSC_LINK)
+
 const getBase = (): Configuration => ({
   artifactName: "mimo-desktop-${os}-${arch}.${ext}",
+  // Publishing to GitHub Releases is what makes electron-builder emit the
+  // electron-updater metadata (latest.yml / latest-mac.yml) and bake the
+  // matching app-update.yml into the app. Without it auto-update is dead.
+  publish: [{ provider: "github", owner: "shin4", repo: "mimo-code" }],
   directories: {
     output: "dist",
     buildResources: "resources",
@@ -50,11 +61,11 @@ const getBase = (): Configuration => ({
     extendInfo: {
       NSMicrophoneUsageDescription: "MiMo Code uses the microphone only when you start dictation.",
     },
-    notarize: true,
+    notarize: appleTeamId ? { teamId: appleTeamId } : false,
     target: ["dmg", "zip"],
   },
   dmg: {
-    sign: true,
+    sign: macSign,
   },
   protocols: {
     name: "MiMo Code Desktop",
@@ -69,8 +80,10 @@ const getBase = (): Configuration => ({
     verifyUpdateCodeSignature: false,
   },
   nsis: {
-    oneClick: true,
+    // Assisted installer (not one-click) so users can pick the install directory.
+    oneClick: false,
     perMachine: false,
+    allowToChangeInstallationDirectory: true,
     installerIcon: `resources/icons/icon.ico`,
     installerHeaderIcon: `resources/icons/icon.ico`,
   },
