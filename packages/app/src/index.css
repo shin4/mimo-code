@@ -1,0 +1,428 @@
+@import "@opencode-ai/ui/styles/tailwind";
+@import "@opencode-ai/ui/v2/styles/tailwind.css";
+
+@font-face {
+  font-family: "MiSans";
+  src: url("/assets/MiSansVF.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "JetBrainsMono Nerd Font Mono";
+  src: url("/assets/JetBrainsMonoNerdFontMono-Regular.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* ============================================================================
+   MiMo · Xiaomi/HyperOS "Direction B" helper layer.
+   Restrained orange accent + card radii. Surfaces/shadows/hairlines reuse the
+   existing --v2-* tokens (see index usage); only the genuinely-missing soft /
+   ring / text / radius values live here. Adapts to light/dark via the
+   ThemeProvider's data-color-scheme attribute on <html>.
+   ============================================================================ */
+@layer theme {
+  :root {
+    --mimo-accent: var(--v2-orange-600); /* #ff6900 */
+    --mimo-accent-press: var(--v2-orange-700); /* #e85d00 */
+    --mimo-accent-text: #d35700; /* darker, readable on light */
+    --mimo-accent-soft: rgba(255, 105, 0, 0.1);
+    --mimo-accent-ring: rgba(255, 105, 0, 0.28);
+    --mimo-radius-lg: 16px;
+    --mimo-radius-md: 11px;
+  }
+
+  [data-color-scheme="dark"] {
+    --mimo-accent: #ff7d28;
+    --mimo-accent-press: var(--v2-orange-600);
+    --mimo-accent-text: #ff9a52;
+    --mimo-accent-soft: rgba(255, 125, 40, 0.14);
+    --mimo-accent-ring: rgba(255, 125, 40, 0.32);
+  }
+}
+
+@layer components {
+  /* Settings dialog: keep a constant height regardless of the active tab's
+     option count. The dialog-container is already fixed-height (x-large), but
+     dialog-content only sets max-height, so it otherwise hugs its content. */
+  [data-slot="dialog-content"]:has(.settings-dialog) {
+    height: 100%;
+  }
+
+  /* status-pill prefix-stable pulse (see session-toolbar) */
+  @keyframes mimo-pulse {
+    0% {
+      box-shadow: 0 0 0 0 color-mix(in srgb, var(--v2-green-600) 55%, transparent);
+    }
+    70% {
+      box-shadow: 0 0 0 5px transparent;
+    }
+    100% {
+      box-shadow: 0 0 0 0 transparent;
+    }
+  }
+
+  /* TTS auto-play toggle — sound-wave arcs pulse while enabled (prompt-input) */
+  @keyframes mimo-wave {
+    0%,
+    100% {
+      opacity: 0.3;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+  .mimo-wave {
+    animation: mimo-wave 1.4s ease-in-out infinite;
+  }
+  .mimo-wave-2 {
+    animation-delay: 0.35s;
+  }
+
+  [data-component="prompt-dictation-meter"] {
+    display: inline-flex;
+    flex: 0 1 clamp(64px, 15vw, 112px);
+    align-items: center;
+    justify-content: center;
+    width: clamp(64px, 15vw, 112px);
+    max-width: min(22vw, 112px);
+    height: 28px;
+    min-width: 0;
+  }
+
+  [data-slot="prompt-dictation-meter-bars"] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    width: 100%;
+    height: 22px;
+    overflow: hidden;
+  }
+
+  [data-slot="prompt-dictation-meter-bar"] {
+    width: 2px;
+    min-height: 3px;
+    border-radius: 999px;
+    background: var(--mimo-accent-text);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--mimo-accent-text) 8%, transparent);
+    transition:
+      height 90ms ease-out,
+      opacity 90ms ease-out;
+  }
+
+  [data-component="mimo-pro-composer-effect"] {
+    --mimo-pro-composer-effect-duration: 6525ms;
+    position: relative;
+    z-index: 0;
+    border-radius: 16px;
+    isolation: isolate;
+  }
+
+  [data-component="mimo-pro-composer-effect"] > [data-dock-surface="shell"] {
+    position: relative;
+    z-index: 1;
+  }
+
+  [data-component="mimo-pro-composer-effect"][data-active="true"] {
+    animation: mimo-pro-composer-lift var(--mimo-pro-composer-effect-duration) cubic-bezier(0.22, 1, 0.36, 1) both;
+    will-change: transform;
+  }
+
+  [data-component="mimo-pro-composer-effect"][data-active="true"]::before,
+  [data-component="mimo-pro-composer-effect"][data-active="true"]::after {
+    content: "";
+    position: absolute;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  [data-component="mimo-pro-composer-effect"][data-active="true"]::before {
+    inset: -2px;
+    border-radius: 18px;
+    background: linear-gradient(
+      105deg,
+      rgba(66, 133, 244, 0.18) 0%,
+      rgba(66, 133, 244, 0.18) 30%,
+      #4285f4 42%,
+      #ea4335 49%,
+      #fbbc04 56%,
+      #34a853 63%,
+      rgba(66, 133, 244, 0.18) 74%,
+      rgba(66, 133, 244, 0.18) 100%
+    );
+    background-size: 260% 100%;
+    background-position: 120% 50%;
+    box-shadow: 0 0 0 1px rgba(66, 133, 244, 0.22);
+    animation: mimo-pro-composer-ring var(--mimo-pro-composer-effect-duration) cubic-bezier(0.22, 1, 0.36, 1) both;
+    will-change: opacity, background-position;
+  }
+
+  [data-component="mimo-pro-composer-effect"][data-active="true"]::after {
+    inset: -20px;
+    border-radius: 36px;
+    background: linear-gradient(
+      105deg,
+      transparent 0%,
+      rgba(66, 133, 244, 0.1) 26%,
+      rgba(66, 133, 244, 0.34) 42%,
+      rgba(234, 67, 53, 0.3) 49%,
+      rgba(251, 188, 4, 0.32) 56%,
+      rgba(52, 168, 83, 0.34) 63%,
+      rgba(66, 133, 244, 0.1) 76%,
+      transparent 100%
+    );
+    background-size: 260% 100%;
+    background-position: 120% 50%;
+    filter: blur(18px);
+    -webkit-mask:
+      linear-gradient(90deg, transparent 0, #000 28px, #000 calc(100% - 28px), transparent 100%),
+      linear-gradient(180deg, transparent 0, #000 28px, #000 calc(100% - 28px), transparent 100%);
+    -webkit-mask-composite: source-in;
+    mask:
+      linear-gradient(90deg, transparent 0, #000 28px, #000 calc(100% - 28px), transparent 100%),
+      linear-gradient(180deg, transparent 0, #000 28px, #000 calc(100% - 28px), transparent 100%);
+    mask-composite: intersect;
+    opacity: 0;
+    animation: mimo-pro-composer-glow var(--mimo-pro-composer-effect-duration) cubic-bezier(0.22, 1, 0.36, 1) both;
+    will-change: opacity, background-position;
+  }
+
+  @keyframes mimo-pro-composer-lift {
+    0%,
+    100% {
+      transform: translateY(0) scale(1);
+    }
+
+    9%,
+    16% {
+      transform: translateY(-14px) scale(1.01);
+    }
+
+    24% {
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes mimo-pro-composer-ring {
+    0% {
+      opacity: 0;
+      background-position: 120% 50%;
+    }
+
+    6% {
+      opacity: 0.95;
+      background-position: 120% 50%;
+    }
+
+    52% {
+      opacity: 0.38;
+      background-position: -20% 50%;
+    }
+
+    92% {
+      opacity: 0.32;
+      background-position: -20% 50%;
+    }
+
+    100% {
+      opacity: 0;
+      background-position: -20% 50%;
+    }
+  }
+
+  @keyframes mimo-pro-composer-glow {
+    0% {
+      opacity: 0;
+      background-position: 120% 50%;
+    }
+
+    6% {
+      opacity: 0.5;
+      background-position: 120% 50%;
+    }
+
+    52% {
+      opacity: 0.24;
+      background-position: -20% 50%;
+    }
+
+    92% {
+      opacity: 0.16;
+      background-position: -20% 50%;
+    }
+
+    100% {
+      opacity: 0;
+      background-position: -20% 50%;
+    }
+  }
+
+  @keyframes mimo-pro-composer-reduced-ring {
+    0% {
+      opacity: 0;
+    }
+
+    7%,
+    89% {
+      opacity: 0.72;
+    }
+
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-slot="prompt-dictation-meter-bar"] {
+      transition: none;
+    }
+
+    [data-component="mimo-pro-composer-effect"][data-active="true"] {
+      animation: none;
+      will-change: auto;
+    }
+
+    [data-component="mimo-pro-composer-effect"][data-active="true"]::before {
+      animation: mimo-pro-composer-reduced-ring var(--mimo-pro-composer-effect-duration) ease-out both;
+    }
+
+    [data-component="mimo-pro-composer-effect"][data-active="true"]::after {
+      animation: none;
+      opacity: 0;
+      will-change: auto;
+    }
+  }
+
+  @keyframes session-progress-whip {
+    0% {
+      clip-path: inset(0 100% 0 0 round 999px);
+      animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    48% {
+      clip-path: inset(0 0 0 0 round 999px);
+      animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
+    }
+
+    100% {
+      clip-path: inset(0 0 0 100% round 999px);
+    }
+  }
+
+  [data-component="session-progress"] {
+    position: absolute;
+    inset: 0 0 auto;
+    height: 2px;
+    overflow: hidden;
+    pointer-events: none;
+    opacity: 1;
+    transition: opacity 220ms ease-out;
+  }
+
+  [data-component="session-progress"][data-state="hiding"] {
+    opacity: 0;
+  }
+
+  [data-component="session-progress-bar"] {
+    width: 100%;
+    height: 100%;
+    border-radius: 999px;
+    clip-path: inset(0 100% 0 0 round 999px);
+    will-change: clip-path;
+  }
+
+  [data-component="getting-started"] {
+    container-type: inline-size;
+    container-name: getting-started;
+  }
+
+  [data-component="dropdown-menu-content"].desktop-app-menu,
+  [data-component="dropdown-menu-sub-content"].desktop-app-menu {
+    min-width: 160px;
+    padding: 2px;
+  }
+
+  [data-component="dropdown-menu-content"].desktop-app-menu {
+    width: 160px;
+  }
+
+  [data-component="dropdown-menu-sub-content"].desktop-app-menu {
+    width: max-content;
+    min-width: 240px;
+    max-width: min(320px, calc(100vw - 24px));
+  }
+
+  [data-component="dropdown-menu-content"].desktop-app-menu [data-slot="dropdown-menu-group-label"] {
+    display: flex;
+    align-items: center;
+    height: 28px;
+    padding: 0 12px;
+    font-size: var(--font-size-x-small);
+    font-weight: var(--font-weight-medium);
+    line-height: 1;
+    color: var(--text-weak);
+  }
+
+  [data-component="dropdown-menu-content"].desktop-app-menu [data-slot="dropdown-menu-item"],
+  [data-component="dropdown-menu-content"].desktop-app-menu [data-slot="dropdown-menu-sub-trigger"],
+  [data-component="dropdown-menu-sub-content"].desktop-app-menu [data-slot="dropdown-menu-item"],
+  [data-component="dropdown-menu-sub-content"].desktop-app-menu [data-slot="dropdown-menu-sub-trigger"] {
+    min-height: 28px;
+    padding: 0 12px;
+    gap: 8px;
+    font-weight: var(--font-weight-regular);
+    line-height: 1;
+  }
+
+  [data-component="dropdown-menu-content"].desktop-app-menu [data-slot="dropdown-menu-item-label"],
+  [data-component="dropdown-menu-sub-content"].desktop-app-menu [data-slot="dropdown-menu-item-label"] {
+    white-space: nowrap;
+  }
+
+  [data-slot="desktop-app-menu-keybind"] {
+    margin-left: auto;
+    color: var(--text-weak);
+    font-size: var(--font-size-x-small);
+    font-weight: var(--font-weight-regular);
+    white-space: nowrap;
+  }
+
+  [data-slot="desktop-app-menu-chevron"] {
+    display: flex;
+    margin-left: auto;
+    color: var(--icon-base);
+  }
+
+  [data-component="getting-started-actions"] {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem; /* gap-3 */
+  }
+
+  [data-component="getting-started-actions"] > [data-component="button"] {
+    width: 100%;
+  }
+
+  @container getting-started (min-width: 17rem) {
+    [data-component="getting-started-actions"] {
+      flex-direction: row;
+      align-items: center;
+    }
+
+    [data-component="getting-started-actions"] > [data-component="button"] {
+      width: auto;
+    }
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}

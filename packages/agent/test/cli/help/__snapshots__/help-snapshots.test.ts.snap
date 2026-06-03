@@ -1,0 +1,215 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`mimo CLI help-text snapshots every documented command emits stable help text: mimo mcp --help 1`] = `
+"mimo mcp
+
+manage MCP (Model Context Protocol) servers
+
+Commands:
+  mimo mcp add            add an MCP server
+  mimo mcp list           list MCP servers and their status                            [aliases: ls]
+  mimo mcp auth [name]    authenticate with an OAuth-enabled MCP server
+  mimo mcp logout [name]  remove OAuth credentials for an MCP server
+  mimo mcp debug <name>   debug OAuth connection for an MCP server
+
+Options:
+  -h, --help        show help                                                              [boolean]
+  -v, --version     show version number                                                    [boolean]
+      --print-logs  print logs to stderr                                                   [boolean]
+      --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
+      --pure        run without external plugins                                           [boolean]"
+`;
+
+exports[`mimo CLI help-text snapshots every documented command emits stable help text: mimo agent --help 1`] = `
+"mimo agent
+
+manage agents
+
+Commands:
+  mimo agent create  create a new agent
+  mimo agent list    list all available agents
+
+Options:
+  -h, --help        show help                                                              [boolean]
+  -v, --version     show version number                                                    [boolean]
+      --print-logs  print logs to stderr                                                   [boolean]
+      --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
+      --pure        run without external plugins                                           [boolean]"
+`;
+
+exports[`mimo CLI help-text snapshots every documented command emits stable help text: mimo serve --help 1`] = `
+"mimo serve
+
+starts a headless MiMo-Code server
+
+Options:
+  -h, --help         show help                                                             [boolean]
+  -v, --version      show version number                                                   [boolean]
+      --print-logs   print logs to stderr                                                  [boolean]
+      --log-level    log level                  [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
+      --pure         run without external plugins                                          [boolean]
+      --port         port to listen on                                         [number] [default: 0]
+      --hostname     hostname to listen on                           [string] [default: "127.0.0.1"]
+      --mdns         enable mDNS service discovery (defaults hostname to 0.0.0.0)
+                                                                          [boolean] [default: false]
+      --mdns-domain  custom domain name for mDNS service (default: mimo.local)
+                                                                    [string] [default: "mimo.local"]
+      --cors         additional domains to allow for CORS                      [array] [default: []]"
+`;
+
+exports[`mimo CLI help-text snapshots every documented command emits stable help text: mimo debug --help 1`] = `
+"mimo debug
+
+debugging and troubleshooting tools
+
+Commands:
+  mimo debug config        show resolved configuration
+  mimo debug lsp           LSP debugging utilities
+  mimo debug rg            ripgrep debugging utilities
+  mimo debug file          file system debugging utilities
+  mimo debug scrap         list all known projects
+  mimo debug skill         list all available skills
+  mimo debug snapshot      snapshot debugging utilities
+  mimo debug startup       print startup timing
+  mimo debug agent <name>  show agent configuration details
+  mimo debug v2            debug v2 catalog and built-in plugins
+  mimo debug info          show debug information
+  mimo debug paths         show global paths (data, config, cache, state)
+  mimo debug wait          wait indefinitely (for debugging)
+
+Options:
+  -h, --help        show help                                                              [boolean]
+  -v, --version     show version number                                                    [boolean]
+      --print-logs  print logs to stderr                                                   [boolean]
+      --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
+      --pure        run without external plugins                                           [boolean]"
+`;
+
+exports[`mimo CLI help-text snapshots every documented command emits stable help text: mimo db --help 1`] = `
+"mimo db
+
+database tools
+
+Commands:
+  mimo db [query]     open an interactive sqlite3 shell or run a query                     [default]
+  mimo db path        print the database path
+  mimo db migrate     migrate JSON data to SQLite (merges with existing data)
+
+Positionals:
+  query  SQL query to execute                                                               [string]
+
+Options:
+  -h, --help        show help                                                              [boolean]
+  -v, --version     show version number                                                    [boolean]
+      --print-logs  print logs to stderr                                                   [boolean]
+      --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
+      --pure        run without external plugins                                           [boolean]
+      --format      Output format                 [string] [choices: "json", "tsv"] [default: "tsv"]"
+`;
+
+exports[`mimo CLI help-text snapshots every documented command emits stable help text: mimo mcp list --help 1`] = `
+"mimo mcp list
+
+list MCP servers and their status
+
+Options:
+  -h, --help        show help                                                              [boolean]
+  -v, --version     show version number                                                    [boolean]
+      --print-logs  print logs to stderr                                                   [boolean]
+      --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
+      --pure        run without external plugins                                           [boolean]"
+`;
+
+exports[`mimo CLI help-text snapshots every documented command emits stable help text: mimo mcp add --help 1`] = `
+"mimo mcp add
+
+add an MCP server
+
+Options:
+  -h, --help        show help                                                              [boolean]
+  -v, --version     show version number                                                    [boolean]
+      --print-logs  print logs to stderr                                                   [boolean]
+      --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
+      --pure        run without external plugins                                           [boolean]"
+`;
+
+exports[`mimo CLI help-text snapshots every documented command emits stable help text: mimo mcp auth --help 1`] = `
+"mimo mcp auth [name]
+
+authenticate with an OAuth-enabled MCP server
+
+Commands:
+  mimo mcp auth list  list OAuth-capable MCP servers and their auth status             [aliases: ls]
+
+Positionals:
+  name  name of the MCP server                                                              [string]
+
+Options:
+  -h, --help        show help                                                              [boolean]
+  -v, --version     show version number                                                    [boolean]
+      --print-logs  print logs to stderr                                                   [boolean]
+      --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
+      --pure        run without external plugins                                           [boolean]"
+`;
+
+exports[`mimo CLI help-text snapshots every documented command emits stable help text: mimo mcp logout --help 1`] = `
+"mimo mcp logout [name]
+
+remove OAuth credentials for an MCP server
+
+Positionals:
+  name  name of the MCP server                                                              [string]
+
+Options:
+  -h, --help        show help                                                              [boolean]
+  -v, --version     show version number                                                    [boolean]
+      --print-logs  print logs to stderr                                                   [boolean]
+      --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
+      --pure        run without external plugins                                           [boolean]"
+`;
+
+exports[`mimo CLI help-text snapshots every documented command emits stable help text: mimo agent create --help 1`] = `
+"mimo agent create
+
+create a new agent
+
+Options:
+  -h, --help                  show help                                                    [boolean]
+  -v, --version               show version number                                          [boolean]
+      --print-logs            print logs to stderr                                         [boolean]
+      --log-level             log level         [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
+      --pure                  run without external plugins                                 [boolean]
+      --path                  directory path to generate the agent file                     [string]
+      --description           what the agent should do                                      [string]
+      --mode                  agent mode            [string] [choices: "all", "primary", "subagent"]
+      --permissions, --tools  comma-separated list of permissions to allow (default: all).
+                              Available: "bash, read, edit, glob, grep, webfetch, task, todowrite,
+                              websearch, lsp, skill"                                        [string]
+  -m, --model                 model to use in the format of provider/model                  [string]"
+`;
+
+exports[`mimo CLI help-text snapshots every documented command emits stable help text: mimo agent list --help 1`] = `
+"mimo agent list
+
+list all available agents
+
+Options:
+  -h, --help        show help                                                              [boolean]
+  -v, --version     show version number                                                    [boolean]
+      --print-logs  print logs to stderr                                                   [boolean]
+      --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
+      --pure        run without external plugins                                           [boolean]"
+`;
+
+exports[`mimo CLI help-text snapshots every documented command emits stable help text: mimo db path --help 1`] = `
+"mimo db path
+
+print the database path
+
+Options:
+  -h, --help        show help                                                              [boolean]
+  -v, --version     show version number                                                    [boolean]
+      --print-logs  print logs to stderr                                                   [boolean]
+      --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
+      --pure        run without external plugins                                           [boolean]"
+`;

@@ -1,0 +1,100 @@
+import { Schema } from "effect"
+import { HttpApi, HttpApiEndpoint, HttpApiGroup, OpenApi } from "effect/unstable/httpapi"
+import { Authorization } from "../middleware/authorization"
+import { InstanceContextMiddleware } from "../middleware/instance-context"
+import { WorkspaceRoutingMiddleware, WorkspaceRoutingQuery } from "../middleware/workspace-routing"
+import { described } from "./metadata"
+
+const root = "/dictation"
+
+export const DictationAudio = Schema.Struct({
+  dataUrl: Schema.String,
+  mime: Schema.String,
+  durationSeconds: Schema.optional(Schema.Finite),
+})
+export type DictationAudio = Schema.Schema.Type<typeof DictationAudio>
+
+export const DictationContextMessage = Schema.Struct({
+  role: Schema.Literals(["user", "assistant"]),
+  text: Schema.String,
+})
+export type DictationContextMessage = Schema.Schema.Type<typeof DictationContextMessage>
+
+export const DictationContext = Schema.Struct({
+  draft: Schema.optional(Schema.String),
+  items: Schema.optional(Schema.Array(Schema.String)),
+  recentMessages: Schema.optional(Schema.Array(DictationContextMessage)),
+})
+export type DictationContext = Schema.Schema.Type<typeof DictationContext>
+
+export const DictationRequest = Schema.Struct({
+  audio: DictationAudio,
+  context: Schema.optional(DictationContext),
+})
+export type DictationRequest = Schema.Schema.Type<typeof DictationRequest>
+
+export const DictationUsage = Schema.Struct({
+  inputTokens: Schema.optional(Schema.Finite),
+  outputTokens: Schema.optional(Schema.Finite),
+  totalTokens: Schema.optional(Schema.Finite),
+  cacheReadInputTokens: Schema.optional(Schema.Finite),
+  audioTokens: Schema.optional(Schema.Finite),
+})
+export type DictationUsage = Schema.Schema.Type<typeof DictationUsage>
+
+export const DictationResponse = Schema.Struct({
+  text: Schema.String,
+  usage: Schema.optional(DictationUsage),
+})
+export type DictationResponse = Schema.Schema.Type<typeof DictationResponse>
+
+const DictationErrorName = Schema.Union([
+  Schema.Literal("BadRequest"),
+  Schema.Literal("ProviderNotConnected"),
+  Schema.Literal("UpstreamError"),
+])
+
+export class DictationApiError extends Schema.ErrorClass<DictationApiError>("DictationError")(
+  {
+    name: DictationErrorName,
+    data: Schema.Struct({
+      message: Schema.optional(Schema.String),
+    }),
+  },
+  { httpApiStatus: 400 },
+) {}
+
+export const DictationApi = HttpApi.make("dictation")
+  .add(
+    HttpApiGroup.make("dictation")
+      .add(
+        HttpApiEndpoint.post("transcribe", root, {
+          query: WorkspaceRoutingQuery,
+          payload: DictationRequest,
+          success: described(DictationResponse, "Transcribed dictation text"),
+          error: DictationApiError,
+        }).annotateMerge(
+          OpenApi.annotations({
+            identifier: "dictation.transcribe",
+            summary: "Transcribe dictation",
+            description: "Transcribe a short WAV audio clip with MiMo v2.5 and lightweight composer context.",
+          }),
+        ),
+      )
+      .annotateMerge(
+        OpenApi.annotations({
+          title: "dictation",
+          description: "MiMo v2.5 short-form dictation routes.",
+        }),
+      )
+      .middleware(InstanceContextMiddleware)
+      .middleware(WorkspaceRoutingMiddleware)
+      .middleware(Authorization),
+  )
+  .annotateMerge(
+    OpenApi.annotations({
+      title: "mimo Dictation HttpApi",
+      version: "0.0.1",
+      description: "Short audio dictation surface for the MiMo provider.",
+    }),
+  )

@@ -1,0 +1,45 @@
+.DS_Store
+node_modules
+.worktrees
+.sst
+.env
+.env.local
+.idea
+.vscode
+.codex
+.opencode/
+*~
+playground
+tmp
+dist
+ts-dist
+.turbo
+**/.serena
+.serena/
+/result
+refs
+Session.vim
+/opencode.json
+/opencode.jsonc
+/mimo.json
+/mimo.jsonc
+a.out
+target
+.scripts
+.direnv/
+
+# Local dev files
+opencode-dev
+mimo-dev
+UPCOMING_CHANGELOG.md
+logs/
+*.bun-build
+tsconfig.tsbuildinfo
+
+# Project-internal docs and local editor/agent state (not for public release)
+# Root-anchored so nested packages/**/AGENTS.md contributor guides stay tracked.
+/CLAUDE.md
+/AGENTS.md
+/specs/
+/.zed/
+.mimo/agents/

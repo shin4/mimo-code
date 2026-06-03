@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "version": "0.1.0",
+  "name": "@opencode-ai/llm",
+  "type": "module",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "setup:recording-env": "bun run script/setup-recording-env.ts",
+    "test": "bun test --timeout 30000",
+    "typecheck": "tsgo --noEmit"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./route": "./src/route/index.ts",
+    "./provider": "./src/provider.ts",
+    "./providers": "./src/providers/index.ts",
+    "./providers/anthropic": "./src/providers/anthropic.ts",
+    "./providers/mimo": "./src/providers/mimo.ts",
+    "./protocols": "./src/protocols/index.ts",
+    "./protocols/anthropic-messages": "./src/protocols/anthropic-messages.ts",
+    "./protocols/openai-chat": "./src/protocols/openai-chat.ts"
+  },
+  "devDependencies": {
+    "@clack/prompts": "1.0.0-alpha.1",
+    "@effect/platform-node": "catalog:",
+    "@opencode-ai/http-recorder": "workspace:*",
+    "@tsconfig/bun": "catalog:",
+    "@types/bun": "catalog:",
+    "@typescript/native-preview": "catalog:"
+  },
+  "dependencies": {
+    "@smithy/eventstream-codec": "4.2.14",
+    "@smithy/util-utf8": "4.2.2",
+    "aws4fetch": "1.0.20",
+    "effect": "catalog:",
+    "partial-json": "0.1.7"
+  }
+}
