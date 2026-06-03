@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MiMo-Code — A native desktop coding agent for MiMo</title>
+<meta name="description" content="MiMo-Code is a native desktop coding agent for the MiMo model family — coding, reasoning, multimodal understanding, dictation, and speech, as first-class runtime capabilities." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 18'%3E%3Cg fill='%23ff6900'%3E%3Crect width='16' height='3'/%3E%3Crect x='19' width='3' height='3'/%3E%3Crect y='3' width='4' height='15'/%3E%3Crect x='7' y='3' width='2' height='5'/%3E%3Crect x='12' y='3' width='4' height='15'/%3E%3Crect x='19' y='5' width='3' height='13'/%3E%3C/g%3E%3C/svg%3E" />
+<meta property="og:title" content="MiMo-Code" />
+<meta property="og:description" content="A native desktop coding agent for the MiMo model family." />
+<meta property="og:type" content="website" />
+<meta property="og:image" content="./assets/icon.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#ffffff;
+    --ink:#121317;
+    --muted:#6a6a71;
+    --faint:#c9cace;
+    --line:rgba(18,19,23,.08);
+    --brand:#ff6900;
+    --brand-press:#e85d00;
+    --panel:#0b0b0f;
+    /* the cinematic easing antigravity uses (easeInOutQuart / Quint) */
+    --ease:cubic-bezier(.86,0,.07,1);
+    --ease-out:cubic-bezier(.16,1,.3,1);
+    --maxw:1200px;
+    font-synthesis:none;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Google Sans Flex","Google Sans","Inter","Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+    line-height:1.5;overflow-x:hidden;
+  }
+  a{color:inherit;text-decoration:none}
+  .container{max-width:var(--maxw);margin:0 auto;padding:0 28px}
+  .mono{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+
+  /* ---------- nav ---------- */
+  .nav{
+    position:fixed;top:0;left:0;right:0;height:52px;z-index:50;
+    display:flex;align-items:center;
+    background:rgba(255,255,255,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+    transition:box-shadow .3s var(--ease),background .3s var(--ease);
+  }
+  .nav.scrolled{box-shadow:0 1px 0 var(--line)}
+  .nav .container{display:flex;align-items:center;gap:28px;width:100%}
+  .brand{display:flex;align-items:center;gap:9px;font-weight:600;font-size:16px;letter-spacing:-.01em}
+  .brand svg{width:18px;height:15px;display:block}
+  .nav-links{display:flex;gap:26px;margin-left:14px}
+  .nav-links a{color:var(--muted);font-size:14.5px;font-weight:500;transition:color .2s var(--ease)}
+  .nav-links a:hover{color:var(--ink)}
+  .nav-cta{margin-left:auto;display:flex;gap:12px;align-items:center}
+
+  /* ---------- language toggle ---------- */
+  .lang-toggle{display:inline-flex;align-items:center;gap:2px;padding:2px;border:1px solid var(--line);
+    border-radius:9999px;background:rgba(255,255,255,.6)}
+  .lang-toggle button{appearance:none;border:0;background:none;cursor:pointer;font:inherit;
+    font-size:12.5px;font-weight:600;color:var(--muted);padding:5px 11px;border-radius:9999px;line-height:1;
+    transition:background .2s var(--ease),color .2s var(--ease)}
+  .lang-toggle button:hover{color:var(--ink)}
+  .lang-toggle button.active{background:var(--ink);color:#fff}
+
+  /* ---------- buttons (pills) ---------- */
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;cursor:pointer;border:1px solid transparent;
+    border-radius:9999px;font-size:14.5px;font-weight:500;padding:9px 18px;line-height:1;
+    transition:transform .25s var(--ease-out),background .25s var(--ease),box-shadow .25s var(--ease),color .2s;
+    white-space:nowrap;
+  }
+  .btn svg{width:15px;height:15px}
+  .btn-primary{background:var(--ink);color:#fff}
+  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 10px 26px -10px rgba(18,19,23,.5)}
+  .btn-secondary{background:#f1f1f3;color:var(--ink);border-color:var(--line)}
+  .btn-secondary:hover{background:#e9e9ec;transform:translateY(-1px)}
+  .btn-brand{background:var(--brand);color:#fff}
+  .btn-brand:hover{background:var(--brand-press);transform:translateY(-1px);box-shadow:0 12px 30px -10px rgba(255,105,0,.55)}
+
+  /* ---------- hero ---------- */
+  .hero{position:relative;padding:128px 0 72px;text-align:center;overflow:hidden}
+  .hero canvas{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+  .hero .container{position:relative;z-index:1}
+  .eyebrow-logo{display:inline-flex;align-items:center;gap:9px;color:var(--muted);font-weight:600;font-size:18px;letter-spacing:-.01em;margin-bottom:18px}
+  .eyebrow-logo svg{width:22px;height:18px}
+  h1.hero-title{
+    position:relative;font-size:clamp(38px,6.4vw,74px);line-height:1.07;font-weight:450;letter-spacing:-.03em;
+    margin:0 auto;max-width:18ch;text-align:center;
+  }
+  /* ghost holds the full final text to reserve the box height/width up front,
+     so the typewriter never shifts the elements below it while wrapping */
+  .hero-title .ghost{visibility:hidden}
+  .hero-title .live{position:absolute;inset:0}
+  .caret{display:inline-block;width:.5ch;height:.92em;vertical-align:-.06em;margin-left:.04em;
+    background:var(--brand);border-radius:2px;animation:blink 1s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+  .hero-sub{max-width:54ch;margin:26px auto 0;color:var(--muted);font-size:clamp(16px,1.7vw,19px);line-height:1.6}
+  .hero-cta{display:flex;gap:12px;justify-content:center;margin-top:34px;flex-wrap:wrap}
+
+  /* ---------- dark cinematic panel ---------- */
+  .showcase{padding:28px 0}
+  .panel{
+    position:relative;border-radius:28px;background:radial-gradient(120% 120% at 50% 38%,#1a1320 0%,#0b0b0f 55%,#070708 100%);
+    overflow:hidden;min-height:380px;display:flex;align-items:center;justify-content:center;
+  }
+  .panel canvas{position:absolute;inset:0;width:100%;height:100%}
+  .panel-glow{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);
+    width:540px;height:540px;border-radius:50%;
+    background:radial-gradient(circle,rgba(255,105,0,.28),rgba(255,61,129,.14) 42%,transparent 68%);
+    filter:blur(8px);pointer-events:none}
+  .panel-logo{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center}
+  .panel-logo .mimo-big svg{width:96px;height:78px;filter:drop-shadow(0 8px 40px rgba(255,105,0,.5))}
+  .panel-logo .word{color:#fff;font-size:clamp(28px,4vw,46px);font-weight:500;letter-spacing:-.02em}
+  .panel-logo .cap{color:rgba(255,255,255,.55);font-size:15px;max-width:42ch}
+
+  /* ---------- feature rows ---------- */
+  section.feature{padding:74px 0}
+  .feature .grid{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center}
+  .feature.reverse .grid > .copy{order:2}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;color:var(--brand);font-weight:600;font-size:13px;
+    text-transform:uppercase;letter-spacing:.08em;margin-bottom:16px}
+  .eyebrow::before{content:"";width:7px;height:7px;border-radius:2px;background:var(--brand)}
+  h2.feature-title{font-size:clamp(30px,4vw,46px);line-height:1.1;font-weight:450;letter-spacing:-.025em;margin:0 0 20px}
+  .feature-desc{color:var(--muted);font-size:18px;line-height:1.65;max-width:46ch}
+  .feature .actions{margin-top:28px}
+
+  /* product window mock + glow */
+  .window-wrap{position:relative;isolation:isolate}
+  .window-wrap::before{content:"";position:absolute;inset:-12% -8% -16%;z-index:-1;border-radius:40px;
+    background:radial-gradient(60% 60% at 50% 40%,rgba(124,92,255,.42),rgba(255,105,0,.30) 55%,transparent 78%);
+    filter:blur(34px)}
+  .window{border-radius:16px;overflow:hidden;background:#fff;border:1px solid var(--line);
+    box-shadow:0 30px 70px -30px rgba(18,19,23,.4);transform:translateZ(0)}
+  .window .bar{height:34px;display:flex;align-items:center;gap:7px;padding:0 14px;background:#f6f6f8;border-bottom:1px solid var(--line)}
+  .window .bar i{width:11px;height:11px;border-radius:50%;display:block}
+  .window .bar i:nth-child(1){background:#ff5f57}.window .bar i:nth-child(2){background:#febc2e}.window .bar i:nth-child(3){background:#28c840}
+  .window img{display:block;width:100%;height:auto}
+  .floaty{animation:floaty 7s ease-in-out infinite}
+  @keyframes floaty{50%{transform:translateY(-12px)}}
+
+  /* a CSS-art card for non-screenshot features */
+  .art{position:relative;border-radius:20px;min-height:330px;overflow:hidden;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(120% 120% at 50% 30%,#15131c,#0b0b0f);border:1px solid rgba(255,255,255,.06)}
+  .art .ring{width:230px;height:230px;border-radius:50%;
+    background:conic-gradient(from 0deg,#ff6900,#ff3d81,#7c5cff,#22c55e,#ff6900);filter:blur(2px);
+    -webkit-mask:radial-gradient(circle,transparent 56%,#000 57%);mask:radial-gradient(circle,transparent 56%,#000 57%);
+    animation:spin 14s linear infinite;opacity:.9}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .art .label{position:absolute;color:#fff;font-weight:500;font-size:22px;letter-spacing:-.01em;text-shadow:0 2px 30px rgba(124,92,255,.7)}
+
+  /* ---------- closing headline ---------- */
+  .closing{padding:88px 0 28px}
+  .closing .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:64px;align-items:end}
+  h2.big{font-size:clamp(34px,5.4vw,64px);line-height:1.05;font-weight:450;letter-spacing:-.03em;margin:0}
+  .closing p{color:var(--muted);font-size:18px;line-height:1.65;margin:0}
+
+  /* ---------- cta band ---------- */
+  .cta{position:relative;padding:96px 0;text-align:center;overflow:hidden;margin-top:28px}
+  .cta canvas{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+  .cta .container{position:relative;z-index:1}
+  .cta h2{font-size:clamp(32px,5vw,56px);font-weight:450;letter-spacing:-.03em;margin:0 0 28px}
+
+  /* ---------- footer ---------- */
+  footer{border-top:1px solid var(--line);padding:56px 0 64px;color:var(--muted);font-size:14px}
+  footer .top{display:flex;justify-content:space-between;gap:32px;flex-wrap:wrap;margin-bottom:32px}
+  footer .brand{color:var(--ink)}
+  footer .links{display:flex;gap:26px;flex-wrap:wrap}
+  footer .links a{color:var(--muted);transition:color .2s}
+  footer .links a:hover{color:var(--ink)}
+  .disclaimer{max-width:70ch;line-height:1.6;color:var(--faint);font-size:13px}
+  .disclaimer strong{color:var(--muted);font-weight:600}
+
+  /* ---------- reveal animations ---------- */
+  .reveal{opacity:0;transform:translateY(26px);transition:opacity .9s var(--ease-out),transform .9s var(--ease-out)}
+  .reveal.in{opacity:1;transform:none}
+  .reveal[data-d="1"]{transition-delay:.08s}.reveal[data-d="2"]{transition-delay:.16s}.reveal[data-d="3"]{transition-delay:.24s}
+  /* word-by-word reveal (grey -> ink), antigravity style */
+  .words .w{color:var(--faint);transition:color .5s var(--ease)}
+  .words.in .w{color:inherit}
+
+  @media (max-width:860px){
+    .nav-links{display:none}
+    .feature .grid,.closing .grid{grid-template-columns:1fr;gap:36px}
+    .feature.reverse .grid > .copy{order:0}
+    .hero{padding:120px 0 64px}
+    section.feature{padding:64px 0}
+  }
+  @media (max-width:600px){
+    /* keep the language toggle visible; collapse the GitHub pill to an icon */
+    .nav .nav-cta .btn-primary span{display:none}
+    .nav .nav-cta .btn-primary{padding:9px 11px}
+    .lang-toggle button{padding:5px 9px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important}
+    html{scroll-behavior:auto}
+    .reveal{opacity:1;transform:none;transition:none}
+    .words .w{color:inherit}
+    .caret{display:none}
+  }
+</style>
+</head>
+<body>
+
+<!-- reusable MiMo glyph -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="mimo" viewBox="0 0 22 18">
+    <g fill="var(--brand)">
+      <rect width="16" height="3"/><rect x="19" width="3" height="3"/>
+      <rect y="3" width="4" height="15"/><rect x="7" y="3" width="2" height="5"/>
+      <rect x="12" y="3" width="4" height="15"/><rect x="19" y="5" width="3" height="13"/>
+    </g>
+  </symbol>
+</svg>
+
+<nav class="nav" id="nav">
+  <div class="container">
+    <a class="brand" href="#top"><svg><use href="#mimo"/></svg> MiMo-Code</a>
+    <div class="nav-links">
+      <a href="#features" data-i18n="nav.features">Features</a>
+      <a href="#capabilities" data-i18n="nav.capabilities">Capabilities</a>
+      <a href="https://github.com/shin4/mimo-code">GitHub</a>
+    </div>
+    <div class="nav-cta">
+      <div class="lang-toggle" role="group" aria-label="Language / 语言">
+        <button type="button" data-lang="zh">CN</button>
+        <button type="button" data-lang="en">EN</button>
+      </div>
+      <a class="btn btn-primary" href="https://github.com/shin4/mimo-code">
+        <span data-i18n="nav.star">Star on GitHub</span>
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a8 8 0 0 0-2.53 15.59c.4.07.55-.17.55-.38v-1.33c-2.22.48-2.69-1.07-2.69-1.07-.36-.92-.89-1.17-.89-1.17-.73-.5.06-.49.06-.49.8.06 1.23.83 1.23.83.71 1.22 1.87.87 2.33.66.07-.52.28-.87.5-1.07-1.77-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.83-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.03 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.52.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.45.55.38A8 8 0 0 0 8 .25Z"/></svg>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<main id="top">
+
+  <!-- HERO -->
+  <section class="hero">
+    <canvas id="confetti-hero"></canvas>
+    <div class="container">
+      <div class="eyebrow-logo reveal"><svg><use href="#mimo"/></svg> MiMo-Code</div>
+      <h1 class="hero-title">
+        <span class="ghost" aria-hidden="true">A native desktop coding agent for MiMo</span>
+        <span class="live"><span id="typed"></span><span class="caret" id="caret"></span></span>
+      </h1>
+      <p class="hero-sub reveal" data-d="1" data-i18n="hero.sub">Built to make the MiMo model family first-class participants in the agent runtime — coding, reasoning, multimodal understanding, dictation, and speech, not a generic provider skin.</p>
+      <div class="hero-cta reveal" data-d="2">
+        <a class="btn btn-primary" href="https://github.com/shin4/mimo-code" data-i18n="cta.viewGithub">View on GitHub</a>
+        <a class="btn btn-secondary" href="#features" data-i18n="hero.explore">Explore features</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- DARK CINEMATIC PANEL -->
+  <section class="showcase">
+    <div class="container">
+      <div class="panel reveal">
+        <canvas id="confetti-panel"></canvas>
+        <div class="panel-glow"></div>
+        <div class="panel-logo">
+          <span class="mimo-big"><svg viewBox="0 0 22 18" width="96" height="78"><use href="#mimo"/></svg></span>
+          <span class="word">MiMo-Code</span>
+          <span class="cap" data-i18n="panel.cap">Developed on the OpenCode Desktop V2 route and built on the OpenCode Harness — adapted to be MiMo-first.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <div id="features"></div>
+
+  <section class="feature">
+    <div class="container">
+      <div class="grid">
+        <div class="copy">
+          <div class="eyebrow reveal" data-i18n="feat1.eyebrow">Native runtime</div>
+          <h2 class="feature-title reveal" data-d="1" data-i18n="feat1.title">MiMo, not a provider skin.</h2>
+          <p class="feature-desc words reveal" data-d="2" data-i18n="feat1.desc">MiMo models are first-class participants in the agent runtime. Request shaping, model selection, and context packaging are tuned for MiMo rather than treating it as a generic OpenAI-compatible provider.</p>
+          <div class="actions reveal" data-d="3"><a class="btn btn-secondary" href="https://github.com/shin4/mimo-code" data-i18n="feat1.action">Read the architecture</a></div>
+        </div>
+        <div class="visual reveal" data-d="1">
+          <div class="window-wrap floaty">
+            <div class="window"><div class="bar"><i></i><i></i><i></i></div><img src="./assets/screenshot.png" alt="MiMo-Code desktop app" loading="lazy" /></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="feature reverse" id="capabilities">
+    <div class="container">
+      <div class="grid">
+        <div class="copy">
+          <div class="eyebrow reveal" data-i18n="feat2.eyebrow">Multimodal &amp; voice</div>
+          <h2 class="feature-title reveal" data-d="1" data-i18n="feat2.title">See, hear, and speak.</h2>
+          <p class="feature-desc words reveal" data-d="2" data-i18n="feat2.desc">Multimodal understanding, audio dictation, and speech synthesis are native MiMo capabilities — designed to shape product behavior, not bolted on after the fact.</p>
+        </div>
+        <div class="visual reveal" data-d="1">
+          <div class="art"><div class="ring"></div><span class="label" data-i18n="feat2.label">Multimodal · Voice · TTS</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="feature">
+    <div class="container">
+      <div class="grid">
+        <div class="copy">
+          <div class="eyebrow reveal" data-i18n="feat3.eyebrow">Cost-aware by design</div>
+          <h2 class="feature-title reveal" data-d="1" data-i18n="feat3.title">The cheapest capable model, by default.</h2>
+          <p class="feature-desc words reveal" data-d="2" data-i18n="feat3.desc">Stable prefix-cache inputs, visible token and cost accounting, lightweight context by default, and model selection that matches each task to the cheapest capable MiMo model.</p>
+        </div>
+        <div class="visual reveal" data-d="1">
+          <div class="art">
+            <div class="ring" style="background:conic-gradient(from 90deg,#ff6900,#ffb072,#ff3d81,#ff6900)"></div>
+            <span class="label mono" style="font-size:18px">tokens · cost · cache</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CLOSING HEADLINE -->
+  <section class="closing">
+    <div class="container">
+      <div class="grid">
+        <h2 class="big reveal" data-i18n-html="closing.title">Built for the<br>agent-first era.</h2>
+        <p class="words reveal" data-d="1" data-i18n-html="closing.desc">MiMo-Code keeps project state isolated, so it runs beside upstream OpenCode without mixing local configuration. Project config lives in <span class="mono">mimo.json</span>, and project-local agents, commands, and plans live under <span class="mono">.mimo/</span>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta">
+    <canvas id="confetti-cta"></canvas>
+    <div class="container">
+      <h2 class="reveal" data-i18n="cta.title">Get MiMo-Code.</h2>
+      <div class="hero-cta reveal" data-d="1" style="justify-content:center">
+        <a class="btn btn-brand" href="https://github.com/shin4/mimo-code" data-i18n="cta.viewGithub">View on GitHub</a>
+        <a class="btn btn-secondary" href="https://github.com/shin4/mimo-code/issues/new" data-i18n="cta.report">Report an issue</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="container">
+    <div class="top">
+      <a class="brand" href="#top" style="font-size:16px;font-weight:600;display:flex;align-items:center;gap:9px"><svg width="18" height="15"><use href="#mimo"/></svg> MiMo-Code</a>
+      <div class="links">
+        <a href="https://github.com/shin4/mimo-code">GitHub</a>
+        <a href="https://github.com/shin4/mimo-code/issues" data-i18n="footer.issues">Issues</a>
+        <a href="https://github.com/shin4/mimo-code/blob/main/LICENSE" data-i18n="footer.license">License (MIT)</a>
+      </div>
+    </div>
+    <p class="disclaimer" data-i18n-html="footer.disclaimer"><strong>Disclaimer:</strong> MiMo-Code is an independent, community-maintained project. It is not an official Xiaomi product and is not affiliated with, sponsored by, or endorsed by Xiaomi Inc. It connects to the MiMo model platform purely as a third-party client. Portions are derived from opencode (MIT).</p>
+    <p class="disclaimer" style="margin-top:14px" data-i18n="footer.copyright">© 2026 MiMo-Code maintainers · MIT License</p>
+  </div>
+</footer>
+
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---- nav shadow on scroll ---- */
+  const nav = document.getElementById('nav');
+  const onScroll = () => nav.classList.toggle('scrolled', scrollY > 8);
+  addEventListener('scroll', onScroll, {passive:true}); onScroll();
+
+  /* ---- hero typewriter (restartable per language; ghost reserves the box height) ---- */
+  const typed = document.getElementById('typed');
+  const caret = document.getElementById('caret');
+  const ghost = document.querySelector('.hero-title .ghost');
+  let twTimer = null;
+  function runTypewriter(str){
+    clearTimeout(twTimer);
+    if (ghost) ghost.textContent = str;
+    if (reduce){ typed.textContent = str; if (caret) caret.style.display = 'none'; return; }
+    let i = 0;
+    const tick = () => {
+      typed.textContent = str.slice(0, i);
+      if (i++ <= str.length) twTimer = setTimeout(tick, 42 + Math.random()*46);
+    };
+    twTimer = setTimeout(tick, 250);
+  }
+
+  /* ---- word / character reveal wrapping (re-runnable on language switch) ---- */
+  function wrapWords(el, lang){
+    const tokenize = lang === 'zh'
+      ? (t => Array.from(t))              // CJK has no spaces → split per character
+      : (t => t.split(/(\s+)/));          // Latin → split per word
+    const walk = node => {
+      [...node.childNodes].forEach(n => {
+        if (n.nodeType === 3){
+          const frag = document.createDocumentFragment();
+          tokenize(n.textContent).forEach(tok => {
+            if (tok === '') return;
+            if (/^\s+$/.test(tok)){ frag.appendChild(document.createTextNode(tok)); return; }
+            const s = document.createElement('span'); s.className = 'w'; s.textContent = tok; frag.appendChild(s);
+          });
+          n.replaceWith(frag);
+        } else if (n.nodeType === 1 && !n.classList.contains('mono')) walk(n);
+      });
+    };
+    walk(el);
+    const step = lang === 'zh' ? 14 : 28;   // tighter stagger for CJK (more tokens)
+    el.querySelectorAll('.w').forEach((w, k) => w.style.transitionDelay = Math.min(k*step, 600) + 'ms');
+  }
+
+  /* ---- intersection reveal ---- */
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, {threshold:.18, rootMargin:'0px 0px -8% 0px'});
+  document.querySelectorAll('.reveal, .words').forEach(el => io.observe(el));
+
+  /* ---- confetti particle field (2D canvas approximation of the WebGL specks) ---- */
+  const COLORS = ['#ff6900','#ff8a3d','#ffc46b','#ff3d81','#8b5cf6','#22c55e','#3b82f6'];
+  function confetti(canvas, density){
+    if (reduce) return;
+    const ctx = canvas.getContext('2d');
+    let w, h, dpr, parts;
+    const resize = () => {
+      dpr = Math.min(devicePixelRatio||1, 2);
+      const r = canvas.getBoundingClientRect();
+      w = canvas.width = r.width*dpr; h = canvas.height = r.height*dpr;
+      const n = Math.round((r.width*r.height)/density);
+      parts = Array.from({length:n}, () => ({
+        x:Math.random()*w, y:Math.random()*h,
+        r:(Math.random()*1.6+.5)*dpr,
+        vx:(Math.random()-.5)*.12*dpr, vy:(Math.random()-.5)*.12*dpr,
+        a:Math.random()*Math.PI*2, tw:Math.random()*.04+.01,
+        c:COLORS[(Math.random()*COLORS.length)|0]
+      }));
+    };
+    const draw = () => {
+      ctx.clearRect(0,0,w,h);
+      for (const p of parts){
+        p.x+=p.vx; p.y+=p.vy; p.a+=p.tw;
+        if(p.x<0)p.x+=w; if(p.x>w)p.x-=w; if(p.y<0)p.y+=h; if(p.y>h)p.y-=h;
+        ctx.globalAlpha = .35 + Math.sin(p.a)*.35 + .3;
+        ctx.fillStyle = p.c;
+        ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,7); ctx.fill();
+      }
+      requestAnimationFrame(draw);
+    };
+    const ro = new ResizeObserver(resize); ro.observe(canvas); resize(); draw();
+  }
+  confetti(document.getElementById('confetti-hero'), 2600);
+  confetti(document.getElementById('confetti-cta'), 3200);
+  // dark panel: brighter specks
+  const pc = document.getElementById('confetti-panel');
+  if (pc && !reduce){ confetti(pc, 1700); }
+
+  /* ---- i18n (EN / 简体中文) ---- */
+  const I18N = {
+    en: {
+      'meta.title':'MiMo-Code — A native desktop coding agent for MiMo',
+      'meta.desc':'MiMo-Code is a native desktop coding agent for the MiMo model family — coding, reasoning, multimodal understanding, dictation, and speech, as first-class runtime capabilities.',
+      'nav.features':'Features','nav.capabilities':'Capabilities','nav.star':'Star on GitHub',
+      'hero.title':'A native desktop coding agent for MiMo',
+      'hero.sub':'Built to make the MiMo model family first-class participants in the agent runtime — coding, reasoning, multimodal understanding, dictation, and speech, not a generic provider skin.',
+      'hero.explore':'Explore features',
+      'panel.cap':'Developed on the OpenCode Desktop V2 route and built on the OpenCode Harness — adapted to be MiMo-first.',
+      'feat1.eyebrow':'Native runtime','feat1.title':'MiMo, not a provider skin.',
+      'feat1.desc':'MiMo models are first-class participants in the agent runtime. Request shaping, model selection, and context packaging are tuned for MiMo rather than treating it as a generic OpenAI-compatible provider.',
+      'feat1.action':'Read the architecture',
+      'feat2.eyebrow':'Multimodal & voice','feat2.title':'See, hear, and speak.',
+      'feat2.desc':'Multimodal understanding, audio dictation, and speech synthesis are native MiMo capabilities — designed to shape product behavior, not bolted on after the fact.',
+      'feat2.label':'Multimodal · Voice · TTS',
+      'feat3.eyebrow':'Cost-aware by design','feat3.title':'The cheapest capable model, by default.',
+      'feat3.desc':'Stable prefix-cache inputs, visible token and cost accounting, lightweight context by default, and model selection that matches each task to the cheapest capable MiMo model.',
+      'closing.title':'Built for the<br>agent-first era.',
+      'closing.desc':'MiMo-Code keeps project state isolated, so it runs beside upstream OpenCode without mixing local configuration. Project config lives in <span class="mono">mimo.json</span>, and project-local agents, commands, and plans live under <span class="mono">.mimo/</span>.',
+      'cta.title':'Get MiMo-Code.','cta.viewGithub':'View on GitHub','cta.report':'Report an issue',
+      'footer.issues':'Issues','footer.license':'License (MIT)',
+      'footer.disclaimer':'<strong>Disclaimer:</strong> MiMo-Code is an independent, community-maintained project. It is not an official Xiaomi product and is not affiliated with, sponsored by, or endorsed by Xiaomi Inc. It connects to the MiMo model platform purely as a third-party client. Portions are derived from opencode (MIT).',
+      'footer.copyright':'© 2026 MiMo-Code maintainers · MIT License'
+    },
+    zh: {
+      'meta.title':'MiMo-Code — 为 MiMo 打造的原生桌面代码智能体',
+      'meta.desc':'MiMo-Code 是为 MiMo 模型家族打造的原生桌面代码智能体——将编程、推理、多模态理解、听写与语音合成作为一等运行时能力。',
+      'nav.features':'特性','nav.capabilities':'能力','nav.star':'在 GitHub 点 Star',
+      'hero.title':'为 MiMo 打造的原生桌面代码智能体',
+      'hero.sub':'让 MiMo 模型家族成为智能体运行时中的一等公民——编程、推理、多模态理解、听写与语音合成，而非通用提供商的套壳。',
+      'hero.explore':'查看特性',
+      'panel.cap':'基于 OpenCode Desktop V2 路线开发，构建于 OpenCode Harness 之上——并调整为 MiMo 优先。',
+      'feat1.eyebrow':'原生运行时','feat1.title':'MiMo，而非提供商套壳。',
+      'feat1.desc':'MiMo 模型是智能体运行时中的一等公民。请求构造、模型选择与上下文打包都为 MiMo 调优，而不是把它当作通用的 OpenAI 兼容提供商。',
+      'feat1.action':'查看架构',
+      'feat2.eyebrow':'多模态与语音','feat2.title':'能看、能听、能说。',
+      'feat2.desc':'多模态理解、语音听写与语音合成都是 MiMo 的原生能力——用来塑造产品行为，而不是事后拼接。',
+      'feat2.label':'多模态 · 语音 · 合成',
+      'feat3.eyebrow':'成本感知设计','feat3.title':'默认选用最具性价比的可用模型。',
+      'feat3.desc':'稳定的前缀缓存输入、可见的 token 与成本核算、默认轻量的上下文，以及为每个任务匹配最便宜可用 MiMo 模型的选择策略。',
+      'closing.title':'为智能体优先的<br>时代而生。',
+      'closing.desc':'MiMo-Code 让项目状态保持隔离，因此能与上游 OpenCode 并存而不混用本地配置。项目配置位于 <span class="mono">mimo.json</span>，项目级的智能体、命令与计划位于 <span class="mono">.mimo/</span>。',
+      'cta.title':'获取 MiMo-Code。','cta.viewGithub':'在 GitHub 查看','cta.report':'反馈问题',
+      'footer.issues':'问题反馈','footer.license':'许可证 (MIT)',
+      'footer.disclaimer':'<strong>声明：</strong>MiMo-Code 是一个独立的、由社区维护的项目。它不是小米官方产品，与小米公司（Xiaomi Inc.）无附属、赞助或背书关系。它仅作为第三方客户端连接 MiMo 模型平台。部分代码衍生自 opencode（MIT）。',
+      'footer.copyright':'© 2026 MiMo-Code 维护者 · MIT 许可证'
+    }
+  };
+
+  function applyLang(lang){
+    if (!I18N[lang]) lang = 'en';
+    const d = I18N[lang];
+    document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+    document.title = d['meta.title'];
+    const md = document.querySelector('meta[name="description"]');
+    if (md) md.setAttribute('content', d['meta.desc']);
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const v = d[el.getAttribute('data-i18n')]; if (v != null) el.textContent = v;
+    });
+    document.querySelectorAll('[data-i18n-html]').forEach(el => {
+      const v = d[el.getAttribute('data-i18n-html')]; if (v != null) el.innerHTML = v;
+    });
+    runTypewriter(d['hero.title']);
+    document.querySelectorAll('.words').forEach(el => wrapWords(el, lang));
+    document.querySelectorAll('.lang-toggle button').forEach(b =>
+      b.classList.toggle('active', b.dataset.lang === lang));
+    try { localStorage.setItem('mimo-lang', lang); } catch(e){}
+    try { const u = new URL(location.href); u.searchParams.set('lang', lang); history.replaceState(null, '', u); } catch(e){}
+  }
+
+  document.querySelectorAll('.lang-toggle button').forEach(b =>
+    b.addEventListener('click', () => applyLang(b.dataset.lang)));
+
+  /* ---- pick initial language: saved choice > ?lang= > browser language > English ---- */
+  let savedLang = null; try { savedLang = localStorage.getItem('mimo-lang'); } catch(e){}
+  const urlLang = new URLSearchParams(location.search).get('lang');
+  const navLang = ((navigator.languages && navigator.languages[0]) || navigator.language || 'en').toLowerCase();
+  const initLang = savedLang || urlLang || (navLang.indexOf('zh') === 0 ? 'zh' : 'en');
+  applyLang(I18N[initLang] ? initLang : 'en');
+})();
+</script>
+</body>
+</html>
