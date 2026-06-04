@@ -39,9 +39,14 @@ protocol.registerSchemesAsPrivileged([
 ])
 
 let backgroundColor: string | undefined
+let quitting = false
 let relaunchHandler = () => {
   app.relaunch()
   app.exit(0)
+}
+
+export function setQuitting(value: boolean) {
+  quitting = value
 }
 const titlebarThemes = new WeakMap<BrowserWindow, Partial<TitlebarTheme>>()
 const pinchZoomEnabled = new WeakMap<BrowserWindow, boolean>()
@@ -177,6 +182,19 @@ export function createMainWindow() {
 
   win.once("ready-to-show", () => {
     win.show()
+  })
+
+  win.on("close", (event) => {
+    if (quitting || process.platform !== "darwin") return
+    event.preventDefault()
+    // Hiding a window that is in native fullscreen leaves an empty fullscreen
+    // Space behind, so leave fullscreen first and hide once the transition ends.
+    if (win.isFullScreen()) {
+      win.once("leave-full-screen", () => win.hide())
+      win.setFullScreen(false)
+      return
+    }
+    win.hide()
   })
 
   return win

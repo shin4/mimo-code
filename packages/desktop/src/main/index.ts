@@ -32,6 +32,7 @@ import {
   createMainWindow,
   registerRendererProtocol,
   setRelaunchHandler,
+  setQuitting,
   setBackgroundColor,
   setDockIcon,
 } from "./windows"
@@ -191,11 +192,28 @@ const main = Effect.gen(function* () {
   })
 
   app.on("before-quit", () => {
+    setQuitting(true)
     void killSidecar()
   })
 
   app.on("will-quit", () => {
     void killSidecar()
+  })
+
+  app.on("window-all-closed", () => {
+    if (process.platform !== "darwin") app.quit()
+  })
+
+  app.on("activate", () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.show()
+      mainWindow.focus()
+      return
+    }
+    // During startup mainWindow is still null but a loading window may be open;
+    // let the startup sequence create the main window instead of racing it.
+    if (BrowserWindow.getAllWindows().some((win) => !win.isDestroyed())) return
+    mainWindow = createMainWindow()
   })
 
   app.on("child-process-gone", (_event, details) => {
