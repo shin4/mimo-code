@@ -1,7 +1,9 @@
-import { Component, Show, createMemo, createResource, onMount, type JSX } from "solid-js"
+import { Component, Show, createMemo, createResource, createSignal, onMount, type JSX } from "solid-js"
+import { Button } from "@opencode-ai/ui/button"
 import { Icon } from "@opencode-ai/ui/icon"
 import { Select } from "@opencode-ai/ui/select"
 import { Switch } from "@opencode-ai/ui/switch"
+import { showToast } from "@opencode-ai/ui/toast"
 import { TextField } from "@opencode-ai/ui/text-field"
 import { Tooltip } from "@opencode-ai/ui/tooltip"
 import { useTheme, type ColorScheme } from "@opencode-ai/ui/theme/context"
@@ -191,6 +193,34 @@ export const SettingsGeneral: Component = () => {
     const update = platform.setPinchZoomEnabled?.(checked)
     if (!update) return
     void update.catch(() => setPinchZoom(!checked))
+  }
+
+  const [checkingUpdate, setCheckingUpdate] = createSignal(false)
+  const checkForUpdatesNow = async () => {
+    if (!platform.checkUpdate) return
+    setCheckingUpdate(true)
+    const result = await platform.checkUpdate().catch(() => undefined)
+    setCheckingUpdate(false)
+    if (!result) {
+      showToast({ title: language.t("common.requestFailed") })
+      return
+    }
+    if (result.updateAvailable) {
+      showToast({
+        icon: "download",
+        title: language.t("toast.update.title"),
+        description: language.t("toast.update.description", { version: result.version ?? "" }),
+        actions: [
+          { label: language.t("toast.update.action.installRestart"), onClick: () => void platform.updateAndRestart?.() },
+          { label: language.t("toast.update.action.notYet"), onClick: "dismiss" },
+        ],
+      })
+      return
+    }
+    showToast({
+      title: language.t("settings.updates.toast.latest.title"),
+      description: language.t("settings.updates.toast.latest.description"),
+    })
   }
 
   const colorSchemeOptions = createMemo((): { value: ColorScheme; label: string }[] => [
@@ -679,6 +709,47 @@ export const SettingsGeneral: Component = () => {
     </Show>
   )
 
+  const UpdatesSection = () => (
+    <Show when={desktop() && !!platform.checkUpdate && !!platform.updateAndRestart}>
+      <div class="flex flex-col gap-1">
+        <h3 class="text-14-medium text-text-strong pb-2">{language.t("settings.general.section.updates")}</h3>
+
+        <SettingsList>
+          <SettingsRow
+            title={language.t("settings.updates.row.startup.title")}
+            description={language.t("settings.updates.row.startup.description")}
+          >
+            <div data-action="settings-updates-startup">
+              <Switch
+                checked={settings.updates.startup()}
+                onChange={(checked) => settings.updates.setStartup(checked)}
+              />
+            </div>
+          </SettingsRow>
+
+          <SettingsRow
+            title={language.t("settings.updates.row.check.title")}
+            description={language.t("settings.updates.row.check.description")}
+          >
+            <div data-action="settings-updates-check-now">
+              <Button
+                type="button"
+                variant="secondary"
+                size="small"
+                disabled={checkingUpdate()}
+                onClick={() => void checkForUpdatesNow()}
+              >
+                {checkingUpdate()
+                  ? language.t("settings.updates.action.checking")
+                  : language.t("settings.updates.action.checkNow")}
+              </Button>
+            </div>
+          </SettingsRow>
+        </SettingsList>
+      </div>
+    </Show>
+  )
+
   return (
     <div class="flex flex-col h-full overflow-y-auto no-scrollbar px-4 pb-10 sm:px-10 sm:pb-10">
       <div class="sticky top-0 z-10 bg-[linear-gradient(to_bottom,var(--surface-stronger-non-alpha)_calc(100%_-_24px),transparent)]">
@@ -689,6 +760,8 @@ export const SettingsGeneral: Component = () => {
 
       <div class="flex flex-col gap-8 w-full">
         <GeneralSection />
+
+        <UpdatesSection />
 
         <AppearanceSection />
 
