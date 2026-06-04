@@ -1,9 +1,11 @@
 name: release
 
 # Cut a release by pushing a tag like `v1.2.0`, or run manually from the Actions
-# tab (workflow_dispatch) supplying the version. Produces signed/notarized macOS
-# (arm64) and Windows (x64) installers and publishes them to a GitHub Release
-# together with the electron-updater metadata (latest.yml / latest-mac.yml).
+# tab (workflow_dispatch) supplying the version. Builds one job per
+# platform+arch (each bakes in its own native node-pty — see
+# electron.vite.config.ts), publishes installers to a GitHub Release, then a
+# finalize job merges the per-arch electron-updater metadata into single
+# latest.yml / latest-mac.yml / latest-linux*.yml feeds.
 on:
   push:
     tags:
@@ -55,14 +57,52 @@ jobs:
               --title "$tag" --notes "Release $tag" --target "${{ github.sha }}"
           fi
 
-  macos:
+  build:
     needs: prepare
-    runs-on: macos-14 # Apple Silicon — native arm64 build
+    # Each entry builds a single platform+arch on a native runner so the native
+    # modules (node-pty, mac_window.node) compile for the right arch without
+    # cross-compilation. `triple`/`yml` feed the finalize step below; the
+    # subdir names must match those read by scripts/finalize-latest-yml.ts.
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-14 # Apple Silicon
+            platform: darwin
+            arch: arm64
+            eb: "--mac --arm64"
+            triple: aarch64-apple-darwin
+            yml: latest-mac.yml
+          - os: macos-13 # Intel
+            platform: darwin
+            arch: x64
+            eb: "--mac --x64"
+            triple: x86_64-apple-darwin
+            yml: latest-mac.yml
+          - os: windows-latest
+            platform: win32
+            arch: x64
+            eb: "--win --x64"
+            triple: x86_64-pc-windows-msvc
+            yml: latest.yml
+          - os: ubuntu-latest
+            platform: linux
+            arch: x64
+            eb: "--linux --x64"
+            triple: x86_64-unknown-linux-gnu
+            yml: latest-linux.yml
+          - os: ubuntu-24.04-arm
+            platform: linux
+            arch: arm64
+            eb: "--linux --arm64"
+            triple: aarch64-unknown-linux-gnu
+            yml: latest-linux-arm64.yml
+    runs-on: ${{ matrix.os }}
     env:
       MIMO_CHANNEL: prod
       MIMO_VERSION: ${{ needs.prepare.outputs.version }}
-      MIMO_TARGET_PLATFORM: darwin
-      MIMO_TARGET_ARCH: arm64
+      MIMO_TARGET_PLATFORM: ${{ matrix.platform }}
+      MIMO_TARGET_ARCH: ${{ matrix.arch }}
     steps:
       - uses: actions/checkout@v6
 
@@ -77,66 +117,65 @@ jobs:
         working-directory: packages/desktop
         run: bun scripts/set-version.ts "${{ needs.prepare.outputs.version }}"
 
-      - name: Build & package (signed + notarized if secrets present)
-        working-directory: packages/desktop
-        env:
-          GH_TOKEN: ${{ github.token }}
-          # Code signing — set CSC_LINK (base64 of the Developer ID Application
-          # .p12) and CSC_KEY_PASSWORD to sign; otherwise auto-discovery is off
-          # and an unsigned app is produced.
-          CSC_LINK: ${{ secrets.CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
-          CSC_IDENTITY_AUTO_DISCOVERY: ${{ secrets.CSC_LINK != '' }}
-          # Notarization — requires all three. APPLE_TEAM_ID also flips the
-          # config's `notarize` on (see electron-builder.config.ts).
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-        run: |
-          bun run build
-          bunx electron-builder --mac --arm64 --config electron-builder.config.ts --publish always
-
-  windows:
-    needs: prepare
-    runs-on: windows-latest # native x64 build
-    env:
-      MIMO_CHANNEL: prod
-      MIMO_VERSION: ${{ needs.prepare.outputs.version }}
-      MIMO_TARGET_PLATFORM: win32
-      MIMO_TARGET_ARCH: x64
-    steps:
-      - uses: actions/checkout@v6
-
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.3.14
-
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-
-      - name: Set release version
-        working-directory: packages/desktop
-        run: bun scripts/set-version.ts "${{ needs.prepare.outputs.version }}"
-
-      - name: Build & package (signed if Azure Trusted Signing secrets present)
+      - name: Build & package
         working-directory: packages/desktop
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
+          # macOS code signing — set CSC_LINK (base64 of the Developer ID
+          # Application .p12) + CSC_KEY_PASSWORD to sign; otherwise auto-discovery
+          # is off and an unsigned app is produced (which Squirrel.Mac will refuse
+          # to auto-update). Ignored on non-macOS runners.
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          CSC_IDENTITY_AUTO_DISCOVERY: ${{ secrets.CSC_LINK != '' }}
+          # macOS notarization — requires all three. APPLE_TEAM_ID also flips the
+          # config's `notarize` on (see electron-builder.config.ts).
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           # Windows signing is optional: sign-windows.ps1 skips when these are
-          # unset, producing an unsigned installer. Add the three secrets later
-          # to enable Azure Trusted Signing without changing this workflow.
+          # unset, producing an unsigned installer. Ignored on non-Windows runners.
           AZURE_TRUSTED_SIGNING_ENDPOINT: ${{ secrets.AZURE_TRUSTED_SIGNING_ENDPOINT }}
           AZURE_TRUSTED_SIGNING_ACCOUNT_NAME: ${{ secrets.AZURE_TRUSTED_SIGNING_ACCOUNT_NAME }}
           AZURE_TRUSTED_SIGNING_CERTIFICATE_PROFILE: ${{ secrets.AZURE_TRUSTED_SIGNING_CERTIFICATE_PROFILE }}
         run: |
           bun run build
-          bunx electron-builder --win --x64 --config electron-builder.config.ts --publish always
+          bunx electron-builder ${{ matrix.eb }} --config electron-builder.config.ts --publish always
 
-  publish:
-    needs: [prepare, macos, windows]
+      - name: Upload update metadata
+        uses: actions/upload-artifact@v4
+        with:
+          # finalize-latest-yml.ts reads these subdir names verbatim.
+          name: latest-yml-${{ matrix.triple }}
+          path: packages/desktop/dist/${{ matrix.yml }}
+          if-no-files-found: error
+
+  finalize:
+    needs: [prepare, build]
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v6
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+
+      - name: Download per-arch update metadata
+        uses: actions/download-artifact@v4
+        with:
+          # No `name` → every latest-yml-<triple> artifact lands in its own subdir.
+          path: latest-yml
+
+      - name: Merge update metadata onto the release
+        working-directory: packages/desktop
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          MIMO_VERSION: ${{ needs.prepare.outputs.version }}
+          LATEST_YML_DIR: ${{ github.workspace }}/latest-yml
+        run: bun scripts/finalize-latest-yml.ts
+
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
