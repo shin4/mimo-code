@@ -15,6 +15,10 @@ boundaries.
   and `createOpencode*` unless a dedicated API migration says otherwise.
 - Do not introduce new providers or release infrastructure without a design
   discussion. The current product direction is MiMo-first.
+- The v2 session/provider path under `packages/agent/src/v2/` is an in-progress
+  migration. `src/v2/provider-parity-checklist.md` tracks legacy behavior still
+  to be ported from `src/provider/provider.ts` — consult it before touching
+  provider setup, model filtering, or auth.
 
 ## Development
 
