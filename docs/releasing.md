@@ -30,7 +30,7 @@ MiMo-Code 桌面端通过两个 GitHub Actions 工作流构建：
 
 也可以在 **Actions → release → Run workflow** 手动触发，填入版本号（不带 `v`）。
 
-> 渠道固定为 `MIMO_CHANNEL=prod`（appId `com.xiaomi.mimo.desktop`）。`dev` 渠道会禁用自动更新，不要用于正式发布。
+> 渠道固定为 `MIMO_CHANNEL=prod`（appId `io.github.shin4.mimo.desktop`）。`dev` 渠道会禁用自动更新，不要用于正式发布。
 
 ---
 
@@ -121,3 +121,23 @@ MIMO_CHANNEL=prod bun run package:win     # 从 macOS 交叉构建 Windows（pac
 ## 扩展架构（可选）
 
 如需 Intel macOS / Windows ARM64：在 `release.yml` 增加 `macos-13`（Intel）/ 用 `package:win --arm64` 的 job；多架构同 OS 会产生多份 `latest*.yml`，此时再启用 `scripts/finalize-latest-yml.ts` 合并后上传。`scripts/finalize-latest-json.ts` 为遗留的 Tauri 更新清单，Electron 不使用，保持闲置即可。
+
+---
+
+## 应用标识符变更（一次性，随首个采用新命名空间的版本发布）
+
+自该版本起，应用标识符从 `com.xiaomi.mimo.*` 迁移到自有命名空间 `io.github.shin4.mimo.*`
+（prod `io.github.shin4.mimo.desktop`）。这等同于一个**全新的应用身份**，请在该版本的
+Release Notes 中包含以下要点：
+
+- **现有用户需手动重新安装**：macOS/Windows 都会把新版本视为新应用，自动更新不会从旧版本
+  原地升级到新标识符。请下载并安装新版本；确认无误后可删除旧的 "MiMo Code Desktop"。
+- **桌面端设置不会自动迁移**：服务器地址、窗口状态等桌面 shell 偏好（存于
+  `appData/<appId>` 的 electron-store）会以新身份重新开始，需要重新设置一次。
+- **会话与登录通常会保留**：Agent 的会话与认证数据存放在 XDG 数据目录（不随 appId 变化），
+  不受本次重命名影响。
+- 自动更新 feed 仍指向 `github.com/shin4/mimo-code` 的 Releases，未变化；后续版本将在新
+  标识符下正常自动更新。
+
+> 旧版 Tauri 用户的 `.dat` 数据仍可被导入：`migrate.ts` 保留了 `com.xiaomi.mimo.*` 作为
+> 历史 Tauri 数据来源映射，新身份首次启动时会尝试导入。
