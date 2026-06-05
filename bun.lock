@@ -16,6 +16,7 @@
         "glob": "13.0.5",
         "husky": "9.1.7",
         "oxlint": "1.60.0",
+        "oxlint-tsgolint": "0.21.0",
         "prettier": "3.6.2",
         "turbo": "2.8.13",
       },
@@ -408,12 +409,10 @@
     },
   },
   "trustedDependencies": [
-    "esbuild",
-    "tree-sitter-powershell",
-    "protobufjs",
     "electron",
+    "esbuild",
     "web-tree-sitter",
-    "tree-sitter-bash",
+    "protobufjs",
   ],
   "patchedDependencies": {
     "solid-js@1.9.10": "patches/solid-js@1.9.10.patch",
