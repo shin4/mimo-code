@@ -161,7 +161,12 @@ const authenticateScoped = (name: string) =>
     )
   })
 
-mcpTest.instance(
+// mimo-desktop has no in-app OAuth browser flow (single API-key auth); the MCP
+// open() that launched the system browser is now a no-op stub (src/mcp/index.ts),
+// so it never calls the mocked open / never throws / never publishes
+// BrowserOpenFailed. These tests exercise the removed flow — skip until/unless
+// in-app OAuth returns.
+mcpTest.instance.skip(
   "BrowserOpenFailed event is published when open() throws",
   () =>
     Effect.gen(function* () {
@@ -183,7 +188,7 @@ mcpTest.instance(
   { config: config("test-oauth-server") },
 )
 
-mcpTest.instance(
+mcpTest.instance.skip(
   "BrowserOpenFailed event is NOT published when open() succeeds",
   () =>
     Effect.gen(function* () {
@@ -203,7 +208,7 @@ mcpTest.instance(
   { config: config("test-oauth-server-2") },
 )
 
-mcpTest.instance(
+mcpTest.instance.skip(
   "open() is called with the authorization URL",
   () =>
     Effect.gen(function* () {

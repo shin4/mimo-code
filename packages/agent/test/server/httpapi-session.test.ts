@@ -369,7 +369,7 @@ describe("session HttpApi", () => {
   )
 
   it.instance(
-    "returns v2 public request errors for cursor and workspace query failures",
+    "returns v2 public request errors for cursor query failures",
     () =>
       Effect.gen(function* () {
         const test = yield* TestInstance
@@ -405,13 +405,8 @@ describe("session HttpApi", () => {
           message: "Cursor does not match requested directory or workspace",
         })
 
-        const invalidWorkspace = yield* request(`/api/session?workspace=bad`, { headers })
-        expect(invalidWorkspace.status).toBe(400)
-        expect(yield* responseJson(invalidWorkspace)).toMatchObject({
-          _tag: "InvalidRequestError",
-          message: "Invalid workspace query parameter",
-          field: "workspace",
-        })
+        // (workspace query-param validation removed: workspace is being collapsed
+        // out of mimo-desktop — single-machine, see control-plane/workspace.ts.)
 
         const messagePage = yield* request(`/api/session/${session.id}/message?limit=1`, { headers })
         const messageCursor = (yield* json<{ cursor: { next?: string } }>(messagePage)).cursor.next
@@ -645,7 +640,8 @@ describe("session HttpApi", () => {
     { git: true, config: { formatter: false, lsp: false, share: "disabled" } },
   )
 
-  it.instance(
+  // Workspace selection is a no-op stub (being removed in "Round 2") — skip.
+  it.instance.skip(
     "persists selected workspace id when creating a session",
     () =>
       Effect.gen(function* () {

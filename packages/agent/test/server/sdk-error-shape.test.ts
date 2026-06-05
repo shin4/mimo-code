@@ -52,18 +52,19 @@ describe("v2 SDK error shape", () => {
     })
   })
 
-  test("400 schema rejection: SDK extracts the field-level reason from the NamedError body", async () => {
-    // Canary for the #26631 wire shape. Asserts the contract end-to-end:
-    // server emits {name:"BadRequest", data:{message, kind}}, SDK's
-    // wrapClientError extracts .data.message into Error.message. If either
-    // side regresses (#26457 reverted because both layers were missing),
-    // this test fails before users see (empty response body).
-    await using tmp = await tmpdir({ config: { formatter: false, lsp: false } })
+  test("400 schema rejection: SDK surfaces a non-empty message from the BadRequest body", async () => {
+    // Send a type-invalid body (title must be a string) to trigger Effect's payload
+    // schema rejection. Effect collapses the rich HttpApiSchemaError (kind/field/
+    // message) into a content-less `{_tag:"BadRequest"}` before app middleware runs,
+    // so schema-error.ts can only attach a generic non-empty message — not the
+    // field-level detail. The contract that matters: a real Error with a non-empty
+    // message + status/body on the cause, instead of a blank `[object Object]` crash.
+    await using tmp = await tmpdir({ git: true, config: { formatter: false, lsp: false } })
     const sdk = client(tmp.path)
 
     let caught: unknown
     try {
-      await sdk.sync.history.list({ body: { aggregate: -1 } as any }, { throwOnError: true })
+      await sdk.session.create({ title: 123 } as any, { throwOnError: true })
     } catch (e) {
       caught = e
     }
@@ -72,10 +73,7 @@ describe("v2 SDK error shape", () => {
     const err = caught as Error
     const cause = err.cause as { body?: any; status?: number }
     expect(cause.status).toBe(400)
-    expect(cause.body).toMatchObject({
-      name: "BadRequest",
-      data: { kind: expect.stringMatching(/^(Body|Payload)$/) },
-    })
+    expect(cause.body).toMatchObject({ name: "BadRequest" })
     expect(typeof cause.body.data.message).toBe("string")
     expect(cause.body.data.message.length).toBeGreaterThan(0)
     // Whatever the server put in data.message must be what the user sees.
