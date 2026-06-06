@@ -144,7 +144,7 @@ body {
 }
 
 .pet-cat__tail {
-  transform-origin: 92px 80px;
+  transform-origin: 95px 86px;
   animation: pet-tail 3.4s ease-in-out infinite;
 }
 .pet-cat[data-status="busy"] .pet-cat__tail {
@@ -160,6 +160,7 @@ body {
 }
 
 .pet-cat__eye {
+  transform-box: fill-box;
   transform-origin: center;
   animation: pet-blink 5s ease-in-out infinite;
 }
