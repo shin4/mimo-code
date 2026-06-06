@@ -127,6 +127,10 @@ export function isPetWindowOpen() {
   return Boolean(petWindow && !petWindow.isDestroyed())
 }
 
+export function isPetWindow(win: BrowserWindow) {
+  return petWindow !== null && !petWindow.isDestroyed() && win === petWindow
+}
+
 // Sender guards for the pet IPC channels: pet-driven actions must come from the
 // pet window, and relay/toggle must come from the main window. The same preload
 // is loaded by every window, so without these any renderer could drive the pet.

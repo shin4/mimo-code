@@ -8,7 +8,7 @@ import { fileURLToPath, pathToFileURL } from "node:url"
 import type { TitlebarTheme } from "../preload/types"
 import { PINCH_ZOOM_ENABLED_KEY } from "./constants"
 import { exportDebugLogs, write as writeLog } from "./logging"
-import { isPetWindowOpen } from "./pet-window"
+import { isPetWindow, isPetWindowOpen } from "./pet-window"
 import { getStore } from "./store"
 import { createUnresponsiveSampler } from "./unresponsive"
 
@@ -61,7 +61,13 @@ export function setRelaunchHandler(handler: () => void) {
 
 export function setBackgroundColor(color: string) {
   backgroundColor = color
-  BrowserWindow.getAllWindows().forEach((win) => win.setBackgroundColor(color))
+  for (const win of BrowserWindow.getAllWindows()) {
+    // The pet window must stay transparent. Painting a theme background onto it
+    // turns it into an opaque rectangle — this is what broke its transparency in
+    // dark mode (the renderer broadcasts the dark background on theme change).
+    if (isPetWindow(win)) continue
+    win.setBackgroundColor(color)
+  }
 }
 
 export function getBackgroundColor(): string | undefined {
