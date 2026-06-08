@@ -18,7 +18,7 @@
  *   MIMO_SERVER=http://127.0.0.1:5000 bun run script/gen-promo-tts.ts   # custom port
  */
 
-import { unlink } from "node:fs/promises"
+import { rm } from "node:fs/promises"
 import path from "node:path"
 
 const SERVER = (process.env["MIMO_SERVER"] ?? "http://127.0.0.1:4096").replace(/\/+$/, "")
@@ -109,11 +109,15 @@ async function main() {
     const mp3Path = path.join(ASSETS, `${clip.id}.mp3`)
     const converted = await toMp3(wavPath, mp3Path)
     if (!converted) {
+      // No ffmpeg: drop any stale mp3 so the page's wav fallback is actually
+      // served. The mp3 <source> is listed first, so a leftover mp3 from an
+      // earlier run would shadow the freshly written wav.
+      await rm(mp3Path, { force: true })
       console.log(`✓ ${path.relative(ROOT, wavPath)} (no ffmpeg — kept wav)`)
       continue
     }
     // Prefer the much smaller mp3; the page lists wav only as a fallback source.
-    await unlink(wavPath)
+    await rm(wavPath, { force: true })
     const kb = Math.round(Bun.file(mp3Path).size / 1024)
     console.log(`✓ ${path.relative(ROOT, mp3Path)} (${kb} KB)`)
   }
