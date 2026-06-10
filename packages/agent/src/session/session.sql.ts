@@ -45,6 +45,8 @@ export const SessionTable = sqliteTable(
     // Accumulated cache hit stats across all turns in this session.
     total_cache_hit_tokens: integer().notNull().default(0),
     total_cache_miss_tokens: integer().notNull().default(0),
+    // How many times the immutable prefix drifted mid-session (each one is a lost cache).
+    prefix_drift_count: integer().notNull().default(0),
     revert: text({ mode: "json" }).$type<{ messageID: MessageID; partID?: PartID; snapshot?: string; diff?: string }>(),
     permission: text({ mode: "json" }).$type<Permission.Ruleset>(),
     agent: text(),

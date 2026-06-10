@@ -147,11 +147,13 @@ const live: Layer.Layer<
             hash: prepared.immutableHash,
           })
         } else if (stored !== prepared.immutableHash) {
+          const driftCount = yield* session.addPrefixDrift(SessionID.make(input.sessionID))
           yield* bus
             .publish(Session.Event.PrefixDrift, {
               sessionID: SessionID.make(input.sessionID),
               storedHash: stored,
               computedHash: prepared.immutableHash,
+              driftCount,
             })
             .pipe(Effect.ignore)
           log.warn("prefix-cache drift detected", {
