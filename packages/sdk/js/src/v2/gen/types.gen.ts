@@ -707,6 +707,11 @@ export type Session = {
       write: number
     }
   }
+  cache?: {
+    hit: number
+    miss: number
+    drift: number
+  }
   share?: {
     url: string
   }
@@ -1442,6 +1447,11 @@ export type GlobalSession = {
       read: number
       write: number
     }
+  }
+  cache?: {
+    hit: number
+    miss: number
+    drift: number
   }
   share?: {
     url: string
@@ -2497,6 +2507,8 @@ export type EventSessionCacheMeasured = {
     readTokens: number
     missTokens: number
     hitRate: number
+    totalReadTokens?: number
+    totalMissTokens?: number
   }
 }
 
@@ -2507,6 +2519,7 @@ export type EventSessionCachePrefixDrift = {
     sessionID: string
     storedHash: string
     computedHash: string
+    driftCount?: number
   }
 }
 

@@ -582,19 +582,22 @@ export const layer = Layer.effect(
               const missTokens = Math.max(0, (rawUsage.inputTokens ?? 0) - readTokens)
               const total = readTokens + missTokens
               const hitRate = total > 0 ? readTokens / total : 0
+              // Accumulate into the session row first so the renderer can show
+              // session-lifetime totals without re-summing every event; the bus
+              // event carries the updated totals as a snapshot.
+              const totals = yield* session.addCacheTokens({
+                sessionID: ctx.sessionID,
+                readTokens,
+                missTokens,
+              })
               yield* bus.publish(Session.Event.CacheMeasured, {
                 sessionID: ctx.sessionID,
                 turnId: ctx.assistantMessage.id,
                 readTokens,
                 missTokens,
                 hitRate,
-              })
-              // Accumulate into the session row so the renderer can show
-              // session-lifetime totals without re-summing every event.
-              yield* session.addCacheTokens({
-                sessionID: ctx.sessionID,
-                readTokens,
-                missTokens,
+                totalReadTokens: totals.hit,
+                totalMissTokens: totals.miss,
               })
             }
             if (!ctx.assistantMessage.summary) {

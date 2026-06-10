@@ -103,6 +103,11 @@ export function fromRow(row: SessionRow): Info {
     },
     share,
     revert,
+    cache: {
+      hit: row.total_cache_hit_tokens,
+      miss: row.total_cache_miss_tokens,
+      drift: row.prefix_drift_count,
+    },
     permission: row.permission ? [...row.permission] : undefined,
     time: {
       created: row.time_created,
@@ -137,6 +142,9 @@ export function toRow(info: Info) {
     tokens_reasoning: (info.tokens ?? EmptyTokens).reasoning,
     tokens_cache_read: (info.tokens ?? EmptyTokens).cache.read,
     tokens_cache_write: (info.tokens ?? EmptyTokens).cache.write,
+    total_cache_hit_tokens: info.cache?.hit ?? 0,
+    total_cache_miss_tokens: info.cache?.miss ?? 0,
+    prefix_drift_count: info.cache?.drift ?? 0,
     revert: info.revert ?? null,
     permission: info.permission,
     time_created: info.time.created,
@@ -179,6 +187,15 @@ const Tokens = Schema.Struct({
 
 const EmptyTokens = { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } }
 
+// Session-lifetime prefix-cache counters, accumulated per LLM step on the
+// session row so the renderer can show totals without re-summing the
+// (partially loaded) message window.
+const CacheTotals = Schema.Struct({
+  hit: NonNegativeInt,
+  miss: NonNegativeInt,
+  drift: NonNegativeInt,
+})
+
 const Share = Schema.Struct({
   url: Schema.String,
 })
@@ -218,6 +235,7 @@ export const Info = Schema.Struct({
   summary: optionalOmitUndefined(Summary),
   cost: optionalOmitUndefined(Schema.Finite),
   tokens: optionalOmitUndefined(Tokens),
+  cache: optionalOmitUndefined(CacheTotals),
   share: optionalOmitUndefined(Share),
   title: Schema.String,
   agent: optionalOmitUndefined(Schema.String),
@@ -380,6 +398,9 @@ export const Event = {
       missTokens: Schema.Int,
       /** readTokens / (readTokens + missTokens), or 0 if no tokens. */
       hitRate: Schema.Finite,
+      /** Session-lifetime totals after this step (from the session row counters). */
+      totalReadTokens: Schema.optional(Schema.Int),
+      totalMissTokens: Schema.optional(Schema.Int),
     }),
   ),
   /** Emitted when the immutable prefix hash drifts between turns (indicates cache miss). */
@@ -389,6 +410,8 @@ export const Event = {
       sessionID: SessionID,
       storedHash: Schema.String,
       computedHash: Schema.String,
+      /** Session-lifetime drift count after this event (from the session row counter). */
+      driftCount: Schema.optional(Schema.Int),
     }),
   ),
 }
@@ -525,12 +548,14 @@ export interface Interface {
   readonly getImmutableHash: (sessionID: SessionID) => Effect.Effect<string | undefined>
   /** Locks the immutable-region hash for prefix-cache stability verification. */
   readonly setImmutableHash: (input: { sessionID: SessionID; hash: string }) => Effect.Effect<void>
-  /** Accumulates per-turn cache hit/miss counts into the session row. */
+  /** Accumulates per-step cache hit/miss counts into the session row; returns the new totals. */
   readonly addCacheTokens: (input: {
     sessionID: SessionID
     readTokens: number
     missTokens: number
-  }) => Effect.Effect<void>
+  }) => Effect.Effect<{ hit: number; miss: number }>
+  /** Increments the session-lifetime prefix-drift counter; returns the new count. */
+  readonly addPrefixDrift: (sessionID: SessionID) => Effect.Effect<number>
 }
 
 export class Service extends Context.Service<Service, Interface>()("@opencode/Session") {}
@@ -817,13 +842,30 @@ export const layer: Layer.Layer<
 
     const addCacheTokens = (input: { sessionID: SessionID; readTokens: number; missTokens: number }) =>
       db((d) => {
-        d.update(SessionTable)
+        const row = d
+          .update(SessionTable)
           .set({
             total_cache_hit_tokens: sql`${SessionTable.total_cache_hit_tokens} + ${input.readTokens}`,
             total_cache_miss_tokens: sql`${SessionTable.total_cache_miss_tokens} + ${input.missTokens}`,
           })
           .where(eq(SessionTable.id, input.sessionID))
-          .run()
+          .returning({
+            hit: SessionTable.total_cache_hit_tokens,
+            miss: SessionTable.total_cache_miss_tokens,
+          })
+          .get()
+        return { hit: row?.hit ?? input.readTokens, miss: row?.miss ?? input.missTokens }
+      })
+
+    const addPrefixDrift = (sessionID: SessionID) =>
+      db((d) => {
+        const row = d
+          .update(SessionTable)
+          .set({ prefix_drift_count: sql`${SessionTable.prefix_drift_count} + 1` })
+          .where(eq(SessionTable.id, sessionID))
+          .returning({ drift: SessionTable.prefix_drift_count })
+          .get()
+        return row?.drift ?? 1
       })
 
     const diff = Effect.fn("Session.diff")(function* (sessionID: SessionID) {
@@ -930,6 +972,7 @@ export const layer: Layer.Layer<
       getImmutableHash,
       setImmutableHash,
       addCacheTokens,
+      addPrefixDrift,
     })
   }),
 )
