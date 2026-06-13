@@ -344,9 +344,8 @@ function globalConfigFile() {
 }
 
 const globalConfigLegacyPairs = [
-  { legacy: "opencode.jsonc", next: "mimo.jsonc" },
-  { legacy: "opencode.json", next: "mimo.json" },
-  { legacy: "config.json", next: "mimo.json" },
+  { legacy: "mimo.jsonc", next: "mio.jsonc" },
+  { legacy: "mimo.json", next: "mio.json" },
 ] as const
 
 function patchJsonc(input: string, patch: unknown, path: string[] = []): string {
@@ -599,7 +598,12 @@ export const layer = Layer.effect(
         }
 
         if (!Flag.MIMO_DISABLE_PROJECT_CONFIG) {
-          for (const file of yield* ConfigPaths.files(AppInfo.configBasename, ctx.directory, ctx.worktree).pipe(Effect.orDie)) {
+          // legacy first: later merges win, so the renamed config overrides the legacy one
+          const projectFiles = [
+            ...(yield* ConfigPaths.files(AppInfo.legacyConfigBasename, ctx.directory, ctx.worktree).pipe(Effect.orDie)),
+            ...(yield* ConfigPaths.files(AppInfo.configBasename, ctx.directory, ctx.worktree).pipe(Effect.orDie)),
+          ]
+          for (const file of projectFiles) {
             yield* merge(file, yield* loadFile(file, authEnv), "local")
           }
         }
@@ -617,9 +621,13 @@ export const layer = Layer.effect(
         const deps: Fiber.Fiber<void>[] = []
 
         for (const dir of directories) {
-          if (dir.endsWith(AppInfo.projectConfigDir) || dir === Flag.MIMO_CONFIG_DIR) {
+          if (
+            dir.endsWith(AppInfo.projectConfigDir) ||
+            dir.endsWith(AppInfo.legacyProjectConfigDir) ||
+            dir === Flag.MIMO_CONFIG_DIR
+          ) {
             const files =
-              dir === Flag.MIMO_CONFIG_DIR
+              dir === Flag.MIMO_CONFIG_DIR || dir.endsWith(AppInfo.legacyProjectConfigDir)
                 ? [...AppInfo.legacyConfigFiles.toReversed(), ...AppInfo.configFiles.toReversed()]
                 : AppInfo.configFiles.toReversed()
             for (const file of files) {
@@ -660,7 +668,7 @@ export const layer = Layer.effect(
           result.command = mergeDeep(result.command ?? {}, yield* Effect.promise(() => ConfigCommand.load(dir)))
           result.agent = mergeDeep(result.agent ?? {}, yield* Effect.promise(() => ConfigAgent.load(dir)))
           result.agent = mergeDeep(result.agent ?? {}, yield* Effect.promise(() => ConfigAgent.loadMode(dir)))
-          // Auto-discovered plugins under `.mimo/plugin(s)` are already local files, so ConfigPlugin.load
+          // Auto-discovered plugins under `.mio/plugin(s)` are already local files, so ConfigPlugin.load
           // returns normalized Specs and we only need to attach origin metadata here.
           const list = yield* Effect.promise(() => ConfigPlugin.load(dir))
           yield* mergePluginOrigins(dir, list)
@@ -825,7 +833,7 @@ export const layer = Layer.effect(
 
     const update = Effect.fn("Config.update")(function* (config: Info) {
       const dir = yield* InstanceState.directory
-      const file = path.join(dir, "mimo.json")
+      const file = path.join(dir, "mio.json")
       const existing = yield* loadFile(file)
       yield* fs
         .writeFileString(file, JSON.stringify(mergeDeep(writable(existing), writable(config)), null, 2))

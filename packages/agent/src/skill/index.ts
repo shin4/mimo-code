@@ -25,14 +25,14 @@ const MIMO_SKILL_PATTERN = "{skill,skills}/**/SKILL.md"
 const SKILL_PATTERN = "**/SKILL.md"
 
 // Built-in skill that ships with MiMo-Code. The model's intuition for what an
-// mimo.json should look like is often wrong, and MiMo-Code hard-fails on
+// mio.json should look like is often wrong, and MiMo-Code hard-fails on
 // invalid config, so users hit cryptic startup errors. Loading this skill
 // when the model is asked to touch MiMo-Code's own config files gives it the
 // actual schemas instead of guesses.
 const CUSTOMIZE_MIMO_SKILL_NAME = "customize-mimo"
 const CUSTOMIZE_OPENCODE_LEGACY_SKILL_NAME = "customize-opencode"
 const CUSTOMIZE_MIMO_SKILL_DESCRIPTION =
-  "Use ONLY when the user is editing or creating MiMo-Code's own configuration: mimo.json, mimo.jsonc, files under .mimo/, or files under ~/.config/mimo/. Also use when creating or fixing MiMo-Code agents, subagents, skills, plugins, MCP servers, or permission rules. Do not use for the user's own application code, or for any project that is not configuring MiMo-Code itself."
+  "Use ONLY when the user is editing or creating MiMo-Code's own configuration: mio.json, mio.jsonc, files under .mio/, or files under ~/.config/mio/. Also use when creating or fixing MiMo-Code agents, subagents, skills, plugins, MCP servers, or permission rules. Do not use for the user's own application code, or for any project that is not configuring MiMo-Code itself."
 const CUSTOMIZE_OPENCODE_LEGACY_SKILL_DESCRIPTION = `Legacy alias for ${CUSTOMIZE_MIMO_SKILL_NAME}. ${CUSTOMIZE_MIMO_SKILL_DESCRIPTION}`
 
 export const Info = Schema.Struct({

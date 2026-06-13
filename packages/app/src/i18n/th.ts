@@ -294,7 +294,7 @@ export const dict = {
   "dialog.mcp.empty": "ไม่มี MCP ที่กำหนดค่า",
 
   "dialog.lsp.empty": "LSPs ตรวจจับอัตโนมัติจากประเภทไฟล์",
-  "dialog.plugins.empty": "ปลั๊กอินที่กำหนดค่าใน mimo.json",
+  "dialog.plugins.empty": "ปลั๊กอินที่กำหนดค่าใน mio.json",
 
   "mcp.status.connected": "เชื่อมต่อแล้ว",
   "mcp.status.failed": "ล้มเหลว",
@@ -470,7 +470,7 @@ export const dict = {
   "error.chain.responseBody": "เนื้อหาการตอบสนอง:\n{{body}}",
   "error.chain.didYouMean": "คุณหมายถึง: {{suggestions}}",
   "error.chain.modelNotFound": "ไม่พบโมเดล: {{provider}}/{{model}}",
-  "error.chain.checkConfig": "ตรวจสอบการกำหนดค่าของคุณ (mimo.json) ชื่อผู้ให้บริการ/โมเดล",
+  "error.chain.checkConfig": "ตรวจสอบการกำหนดค่าของคุณ (mio.json) ชื่อผู้ให้บริการ/โมเดล",
   "error.chain.mcpFailed": 'เซิร์ฟเวอร์ MCP "{{name}}" ล้มเหลว โปรดทราบว่า MiMo-Code ยังไม่รองรับการตรวจสอบสิทธิ์ MCP',
   "error.chain.providerAuthFailed": "การตรวจสอบสิทธิ์ผู้ให้บริการล้มเหลว ({{provider}}): {{message}}",
   "error.chain.providerInitFailed": 'ไม่สามารถเริ่มต้นผู้ให้บริการ "{{provider}}" ตรวจสอบข้อมูลรับรองและการกำหนดค่า',

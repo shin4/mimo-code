@@ -299,7 +299,7 @@ export const dict = {
   "dialog.mcp.empty": "Yapılandırılmış MCP yok",
 
   "dialog.lsp.empty": "LSP'ler dosya türlerinden otomatik algılanır",
-  "dialog.plugins.empty": "Eklentiler mimo.json içinde yapılandırılır",
+  "dialog.plugins.empty": "Eklentiler mio.json içinde yapılandırılır",
 
   "mcp.status.connected": "bağlı",
   "mcp.status.failed": "başarısız",
@@ -476,7 +476,7 @@ export const dict = {
   "error.chain.responseBody": "Yanıt gövdesi:\n{{body}}",
   "error.chain.didYouMean": "Bunu mu demek istediniz: {{suggestions}}",
   "error.chain.modelNotFound": "Model bulunamadı: {{provider}}/{{model}}",
-  "error.chain.checkConfig": "Yapılandırma dosyanızı (mimo.json) sağlayıcı/model adlarını kontrol edin",
+  "error.chain.checkConfig": "Yapılandırma dosyanızı (mio.json) sağlayıcı/model adlarını kontrol edin",
   "error.chain.mcpFailed":
     'MCP sunucusu "{{name}}" başarısız oldu. Not: MiMo-Code henüz MCP kimlik doğrulamasını desteklemiyor.',
   "error.chain.providerAuthFailed": "Sağlayıcı kimlik doğrulaması başarısız ({{provider}}): {{message}}",

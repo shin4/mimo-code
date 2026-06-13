@@ -27,13 +27,14 @@ export const directories = Effect.fn("ConfigPaths.directories")(function* (direc
     Global.Path.config,
     ...(!Flag.MIMO_DISABLE_PROJECT_CONFIG
       ? yield* afs.up({
-          targets: [AppInfo.projectConfigDir],
+          // legacy first: later config merges win, so the renamed dir overrides the legacy one
+          targets: [AppInfo.legacyProjectConfigDir, AppInfo.projectConfigDir],
           start: directory,
           stop: worktree,
         })
       : []),
     ...(yield* afs.up({
-      targets: [AppInfo.projectConfigDir],
+      targets: [AppInfo.legacyProjectConfigDir, AppInfo.projectConfigDir],
       start: Global.Path.home,
       stop: Global.Path.home,
     })),

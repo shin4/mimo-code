@@ -301,7 +301,7 @@ export const dict = {
   "dialog.mcp.empty": "MCP не налаштовано",
 
   "dialog.lsp.empty": "LSP автоматично виявлені за типами файлів",
-  "dialog.plugins.empty": "Плагіни налаштовані в mimo.json",
+  "dialog.plugins.empty": "Плагіни налаштовані в mio.json",
 
   "mcp.status.connected": "підключено",
   "mcp.status.failed": "помилка",
@@ -501,7 +501,7 @@ export const dict = {
   "error.chain.responseBody": "Тіло відповіді:\n{{body}}",
   "error.chain.didYouMean": "Можливо, ви мали на увазі: {{suggestions}}",
   "error.chain.modelNotFound": "Модель не знайдено: {{provider}}/{{model}}",
-  "error.chain.checkConfig": "Перевірте назви провайдерів/моделей у конфігурації (mimo.json)",
+  "error.chain.checkConfig": "Перевірте назви провайдерів/моделей у конфігурації (mio.json)",
   "error.chain.mcpFailed":
     'Сервер MCP "{{name}}" не працює. Зверніть увагу, MiMo-Code ще не підтримує автентифікацію MCP.',
   "error.chain.providerAuthFailed": "Автентифікація провайдера не вдалася ({{provider}}): {{message}}",

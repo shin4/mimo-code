@@ -8,7 +8,7 @@
 // Configuration flows through opencode's built-in test affordances:
 //   - MIMO_CONFIG_CONTENT      : provider config inline, no files to find
 //   - MIMO_TEST_HOME           : pins os.homedir() → tmpdir
-//   - MIMO_DISABLE_PROJECT_CONFIG : skip walking up for mimo.json
+//   - MIMO_DISABLE_PROJECT_CONFIG : skip walking up for mio.json
 //   - OPENCODE_PURE                : skip external plugin discovery + install
 //   - OPENCODE_DISABLE_AUTOUPDATE / AUTOCOMPACT / MODELS_FETCH : no background work
 // Plus HOME / XDG_* pointing at the tmpdir for belt-and-suspenders isolation.

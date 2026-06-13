@@ -273,7 +273,7 @@ export const dict = {
   "dialog.mcp.description": "{{enabled}} z {{total}} włączone",
   "dialog.mcp.empty": "Brak skonfigurowanych MCP",
   "dialog.lsp.empty": "LSP wykryte automatycznie na podstawie typów plików",
-  "dialog.plugins.empty": "Wtyczki skonfigurowane w mimo.json",
+  "dialog.plugins.empty": "Wtyczki skonfigurowane w mio.json",
   "mcp.status.connected": "połączono",
   "mcp.status.failed": "niepowodzenie",
   "mcp.status.needs_auth": "wymaga autoryzacji",
@@ -424,7 +424,7 @@ export const dict = {
   "error.chain.responseBody": "Treść odpowiedzi:\n{{body}}",
   "error.chain.didYouMean": "Czy miałeś na myśli: {{suggestions}}",
   "error.chain.modelNotFound": "Model nie znaleziony: {{provider}}/{{model}}",
-  "error.chain.checkConfig": "Sprawdź swoją konfigurację (mimo.json) nazwy dostawców/modeli",
+  "error.chain.checkConfig": "Sprawdź swoją konfigurację (mio.json) nazwy dostawców/modeli",
   "error.chain.mcpFailed": 'MCP server "{{name}}" failed. Note, MiMo-Code does not support MCP authentication yet.',
   "error.chain.providerAuthFailed": "Uwierzytelnianie dostawcy nie powiodło się ({{provider}}): {{message}}",
   "error.chain.providerInitFailed":

@@ -22,14 +22,14 @@ from `packages/agent` and inspect the generated schema rather than guessing.
 MiMo-Code hard-fails on invalid config, so the cost of a wrong shape is a
 broken startup.
 
-Independently, every `mimo.json` should declare
-`"$schema": "https://platform.xiaomimimo.com/mimo-code/config.json"` so the user's editor catches
+Independently, every `mio.json` should declare
+`"$schema": "https://raw.githubusercontent.com/shin4/mio/main/schema/config.json"` so the user's editor catches
 mistakes as they type.
 
 ## Applying changes
 
 Config is loaded once when MiMo-Code starts and is not hot-reloaded. After
-saving changes to `mimo.json`, an agent file, a skill, a plugin, or any
+saving changes to `mio.json`, an agent file, a skill, a plugin, or any
 other config-time file, **tell the user to quit and restart MiMo-Code** for
 the changes to take effect. The running session will keep using the
 already-loaded config until then.
@@ -38,24 +38,24 @@ already-loaded config until then.
 
 | Scope                         | Path                                                                                                                      |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| Project config                | `./mimo.json`, `./mimo.jsonc`, or `.mimo/mimo.json` (MiMo-Code walks up from the cwd to the worktree root) |
-| Global config                 | `~/.config/mimo/mimo.json` (NOT `~/.mimo/`)                                                                   |
-| Project agents                | `.mimo/agent/<name>.md` or `.mimo/agents/<name>.md`                                                               |
-| Global agents                 | `~/.config/mimo/agent(s)/<name>.md`                                                                                   |
-| Project skills                | `.mimo/skill(s)/<name>/SKILL.md`                                                                                      |
-| Global skills                 | `~/.config/mimo/skill(s)/<name>/SKILL.md`                                                                             |
+| Project config                | `./mio.json`, `./mio.jsonc`, or `.mio/mio.json` (MiMo-Code walks up from the cwd to the worktree root) |
+| Global config                 | `~/.config/mio/mio.json` (NOT `~/.mio/`)                                                                   |
+| Project agents                | `.mio/agent/<name>.md` or `.mio/agents/<name>.md`                                                               |
+| Global agents                 | `~/.config/mio/agent(s)/<name>.md`                                                                                   |
+| Project skills                | `.mio/skill(s)/<name>/SKILL.md`                                                                                      |
+| Global skills                 | `~/.config/mio/skill(s)/<name>/SKILL.md`                                                                             |
 | External skills (auto-loaded) | `~/.claude/skills/<name>/SKILL.md`, `~/.agents/skills/<name>/SKILL.md`                                                    |
 
 Configs from each scope are deep-merged. Project overrides global. Unknown
-top-level keys in `mimo.json` are rejected with `ConfigInvalidError`.
+top-level keys in `mio.json` are rejected with `ConfigInvalidError`.
 
-## mimo.json
+## mio.json
 
 Every field is optional.
 
 ```json
 {
-  "$schema": "https://platform.xiaomimimo.com/mimo-code/config.json",
+  "$schema": "https://raw.githubusercontent.com/shin4/mio/main/schema/config.json",
   "username": "string",
   "model": "provider/model-id",
   "small_model": "provider/model-id",
@@ -68,7 +68,7 @@ Every field is optional.
   "instructions": ["AGENTS.md", "docs/style.md"],
 
   "skills": {
-    "paths": [".mimo/skills", "/abs/path/to/skills"],
+    "paths": [".mio/skills", "/abs/path/to/skills"],
     "urls": ["https://example.com/.well-known/skills/"]
   },
 
@@ -147,7 +147,7 @@ file is named `SKILL.md` exactly, and lives in its own folder named after the
 skill:
 
 ```
-.mimo/skills/my-skill/SKILL.md
+.mio/skills/my-skill/SKILL.md
 ```
 
 Frontmatter:
@@ -175,7 +175,7 @@ skills).
 
 Two ways to define an agent. Use the file form for anything non-trivial.
 
-### Inline (in `mimo.json`)
+### Inline (in `mio.json`)
 
 ```json
 {
@@ -194,7 +194,7 @@ Two ways to define an agent. Use the file form for anything non-trivial.
 ### File
 
 ```
-.mimo/agent/my-reviewer.md      OR     .mimo/agents/my-reviewer.md
+.mio/agent/my-reviewer.md      OR     .mio/agents/my-reviewer.md
 ```
 
 ```markdown
@@ -246,7 +246,7 @@ same key in `agent: { <name>: { ... } }`.
 ```
 
 Auto-discovered plugins (no config entry needed): any `*.ts` or `*.js` file in
-`.mimo/plugin/` or `.mimo/plugins/`.
+`.mio/plugin/` or `.mio/plugins/`.
 
 A plugin module exports `default` (or any named export) of type
 `Plugin = (input: PluginInput, options?) => Promise<Hooks>`. The export is a
@@ -349,11 +349,11 @@ the `plan` agent's permission ruleset (`edit: deny *`).
 
 When a user's config is broken and MiMo-Code won't start, these env vars help:
 
-- `MIMO_DISABLE_PROJECT_CONFIG=1`: skip the project's local `mimo.json`
+- `MIMO_DISABLE_PROJECT_CONFIG=1`: skip the project's local `mio.json`
   and start from globals only. Run from the project directory, MiMo-Code loads,
   the user edits the broken file, then they restart without the flag.
 - `MIMO_CONFIG=/path/to/file.json`: load an additional explicit config.
-- `MIMO_CONFIG_CONTENT='{"$schema":"https://platform.xiaomimimo.com/mimo-code/config.json"}'`:
+- `MIMO_CONFIG_CONTENT='{"$schema":"https://raw.githubusercontent.com/shin4/mio/main/schema/config.json"}'`:
   inject inline JSON as a final local-scope merge.
 - `MIMO_DISABLE_DEFAULT_PLUGINS=1`: skip default plugins.
 - `MIMO_PURE=1`: skip external plugins entirely.
@@ -369,7 +369,7 @@ When a user's config is broken and MiMo-Code won't start, these env vars help:
   and read the generated schema rather than guessing.
 - Preserve `$schema` and any existing fields the user did not ask to change.
 - For agent, skill, and plugin definitions, prefer creating new files in the
-  correct location over inlining everything in `mimo.json`.
+  correct location over inlining everything in `mio.json`.
 - If the user's existing config is malformed, point them at the env-var escape
   hatches above so they can edit from inside MiMo-Code without breaking their
   session.
