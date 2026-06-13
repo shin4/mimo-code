@@ -1,6 +1,6 @@
-# Contributing to MiMo-Code
+# Contributing to Mio
 
-MiMo-Code is maintained as a focused desktop coding agent for the MiMo runtime.
+Mio is maintained as a focused desktop coding agent for the MiMo runtime.
 Keep changes small, evidence-backed, and aligned with the existing package
 boundaries.
 

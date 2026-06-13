@@ -131,7 +131,7 @@ MIO_CHANNEL=prod bun run package:win     # 从 macOS 交叉构建 Windows（pack
 Release Notes 中包含以下要点：
 
 - **现有用户需手动重新安装**：macOS/Windows 都会把新版本视为新应用，自动更新不会从旧版本
-  原地升级到新标识符。请下载并安装新版本；确认无误后可删除旧的 "MiMo Code Desktop"。
+  原地升级到新标识符。请下载并安装新版本；确认无误后可删除旧的 "Mio Desktop"。
 - **桌面端设置不会自动迁移**：服务器地址、窗口状态等桌面 shell 偏好（存于
   `appData/<appId>` 的 electron-store）会以新身份重新开始，需要重新设置一次。
 - **会话与登录通常会保留**：Agent 的会话与认证数据存放在 XDG 数据目录（不随 appId 变化），

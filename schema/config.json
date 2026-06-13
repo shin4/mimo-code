@@ -16,7 +16,7 @@
     },
     "server": {
       "$ref": "#/$defs/ServerConfig",
-      "description": "Server configuration for MiMo-Code serve and web commands"
+      "description": "Server configuration for Mio serve and web commands"
     },
     "command": {
       "type": "object",
@@ -45,7 +45,7 @@
         ],
         "additionalProperties": false
       },
-      "description": "Command configuration for MiMo-Code."
+      "description": "Command configuration for Mio."
     },
     "skills": {
       "type": "object",
@@ -216,7 +216,7 @@
       "additionalProperties": {
         "$ref": "#/$defs/AgentConfig"
       },
-      "description": "Agent configuration for MiMo-Code."
+      "description": "Agent configuration for Mio."
     },
     "provider": {
       "type": "object",
@@ -1215,7 +1215,7 @@
         },
         "server": {
           "$ref": "#/$defs/ServerConfig",
-          "description": "Server configuration for MiMo-Code serve and web commands"
+          "description": "Server configuration for Mio serve and web commands"
         },
         "command": {
           "type": "object",
@@ -1244,7 +1244,7 @@
             ],
             "additionalProperties": false
           },
-          "description": "Command configuration for MiMo-Code."
+          "description": "Command configuration for Mio."
         },
         "skills": {
           "type": "object",
@@ -1415,7 +1415,7 @@
           "additionalProperties": {
             "$ref": "#/$defs/AgentConfig"
           },
-          "description": "Agent configuration for MiMo-Code."
+          "description": "Agent configuration for Mio."
         },
         "provider": {
           "type": "object",
