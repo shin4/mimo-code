@@ -1,6 +1,6 @@
 # 发布与构建（Release / CI）
 
-MiMo-Code 桌面端通过两个 GitHub Actions 工作流构建：
+Mio 桌面端通过两个 GitHub Actions 工作流构建：
 
 | 工作流 | 文件 | 触发 | 作用 |
 | --- | --- | --- | --- |
@@ -136,7 +136,7 @@ Release Notes 中包含以下要点：
   `appData/<appId>` 的 electron-store）会以新身份重新开始，需要重新设置一次。
 - **会话与登录通常会保留**：Agent 的会话与认证数据存放在 XDG 数据目录（不随 appId 变化），
   不受本次重命名影响。
-- 自动更新 feed 仍指向 `github.com/shin4/mimo-code` 的 Releases，未变化；后续版本将在新
+- 自动更新 feed 仍指向 `github.com/shin4/mio` 的 Releases，未变化；后续版本将在新
   标识符下正常自动更新。
 
 > 旧版 Tauri 用户的 `.dat` 数据仍可被导入：`migrate.ts` 保留了 `com.xiaomi.mimo.*` 作为
