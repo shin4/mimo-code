@@ -1,7 +1,7 @@
 export const deepLinkEvent = "mimo:deep-link"
 
 const parseUrl = (input: string) => {
-  if (!input.startsWith("mimo://")) return
+  if (!input.startsWith("mio://")) return
   if (typeof URL.canParse === "function" && !URL.canParse(input)) return
   try {
     return new URL(input)

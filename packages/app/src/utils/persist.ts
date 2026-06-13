@@ -22,7 +22,7 @@ type PersistTarget = {
 }
 
 const LEGACY_STORAGE = "default.dat"
-const GLOBAL_STORAGE = "mimo.global.dat"
+const GLOBAL_STORAGE = "mio.global.dat"
 const LEGACY_GLOBAL_STORAGE = "opencode.global.dat"
 const LOCAL_PREFIX = "mimo."
 const LEGACY_LOCAL_PREFIX = "opencode"

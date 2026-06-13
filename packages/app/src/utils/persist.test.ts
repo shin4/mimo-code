@@ -142,7 +142,7 @@ describe("persist localStorage resilience", () => {
   test("global target reads the upstream global store as legacy fallback", () => {
     const target = Persist.global("language")
 
-    expect(target.storage).toBe("mimo.global.dat")
+    expect(target.storage).toBe("mio.global.dat")
     expect(target.legacyStorageNames).toEqual(["opencode.global.dat"])
   })
 
