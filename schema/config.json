@@ -507,7 +507,7 @@
         },
         "mdnsDomain": {
           "type": "string",
-          "description": "Custom domain name for mDNS service (default: mimo.local)"
+          "description": "Custom domain name for mDNS service (default: mio.local)"
         },
         "cors": {
           "type": "array",

@@ -27,7 +27,7 @@ MiMo 为先。它把编程、推理、多模态理解（图像、PDF、视频）
 
 ## 🔊 听一段
 
-**[入口页](https://shin4.github.io/mimo-code/#capabilities)** 上的这段介绍语音，是 Mio 用自己内置的 TTS 生成的——产品在演示自己的多模态能力，而不是请人配音。**[▶ 去听 →](https://shin4.github.io/mimo-code/#capabilities)** · 英文音色 *Chloe*，中文音色 *冰糖*。
+**[入口页](https://shin4.github.io/mio/#capabilities)** 上的这段介绍语音，是 Mio 用自己内置的 TTS 生成的——产品在演示自己的多模态能力，而不是请人配音。**[▶ 去听 →](https://shin4.github.io/mio/#capabilities)** · 英文音色 *Chloe*，中文音色 *冰糖*。
 
 <details>
 <summary>文稿</summary>
