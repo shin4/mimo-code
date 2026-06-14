@@ -30,7 +30,7 @@ Mio 桌面端通过两个 GitHub Actions 工作流构建：
 
 也可以在 **Actions → release → Run workflow** 手动触发，填入版本号（不带 `v`）。
 
-> 渠道固定为 `MIO_CHANNEL=prod`（appId `io.github.shin4.mimo.desktop`）。`dev` 渠道会禁用自动更新，不要用于正式发布。
+> 渠道固定为 `MIO_CHANNEL=prod`（appId `io.github.shin4.mio.desktop`）。`dev` 渠道会禁用自动更新，不要用于正式发布。
 
 ---
 
@@ -126,8 +126,8 @@ MIO_CHANNEL=prod bun run package:win     # 从 macOS 交叉构建 Windows（pack
 
 ## 应用标识符变更（一次性，随首个采用新命名空间的版本发布）
 
-自该版本起，应用标识符从 `com.xiaomi.mimo.*` 迁移到自有命名空间 `io.github.shin4.mimo.*`
-（prod `io.github.shin4.mimo.desktop`）。这等同于一个**全新的应用身份**，请在该版本的
+自该版本起，应用标识符从 `com.xiaomi.mimo.*` 迁移到自有命名空间 `io.github.shin4.mio.*`
+（prod `io.github.shin4.mio.desktop`）。这等同于一个**全新的应用身份**，请在该版本的
 Release Notes 中包含以下要点：
 
 - **现有用户需手动重新安装**：macOS/Windows 都会把新版本视为新应用，自动更新不会从旧版本
